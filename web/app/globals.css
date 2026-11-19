@@ -1,0 +1,54 @@
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #5b5b60;
+  --accent: #0f6e5a;
+  --border: #e2e2dd;
+  color-scheme: light;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141416;
+    --surface: #1d1d20;
+    --text: #f2f2f2;
+    --muted: #a5a5ab;
+    --accent: #4cc3a5;
+    --border: #2d2d31;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
+a { color: var(--accent); }
+
+.shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+.shell-header {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+  padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 700; text-decoration: none; color: var(--text); }
+.shell-nav { display: flex; flex-wrap: wrap; gap: 4px 16px; flex: 1; }
+.nav-link { text-decoration: none; padding: 4px 0; color: var(--muted); }
+.nav-link[aria-current="page"] { color: var(--text); border-bottom: 2px solid var(--accent); }
+.shell-actions { display: flex; align-items: center; gap: 12px; margin-inline-start: auto; }
+.shell-main { width: 100%; max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+.shell-footer { padding: 16px; color: var(--muted); font-size: 0.875rem; text-align: center; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.center { max-width: 480px; margin: 64px auto; text-align: center; padding: 0 16px; }
+.button, .button-secondary {
+  display: inline-block; border-radius: 8px; padding: 8px 16px; font: inherit; cursor: pointer;
+  text-decoration: none; border: 1px solid var(--accent);
+}
+.button { background: var(--accent); color: #fff; }
+.button-secondary { background: transparent; color: var(--accent); }
+.language { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); }
+.language select { font: inherit; }
+
+@media (max-width: 600px) {
+  .shell-actions { margin-inline-start: 0; width: 100%; justify-content: space-between; }
+}
