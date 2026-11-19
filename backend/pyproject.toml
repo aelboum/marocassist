@@ -1,0 +1,106 @@
+[project]
+name = "marocassist"
+version = "0.1.0"
+description = "MarocAssist backend: a product built on SaaS-OS (modular monolith)."
+requires-python = ">=3.13,<3.14"
+readme = "README.md"
+license = { text = "UNLICENSED" }
+dependencies = [
+    # ADR-0001 (docs/adr): exactly one dependency on SaaS-OS, pinned to the
+    # full commit SHA of release v0.15.0 -- never a branch or a tag.
+    # Verified 2026-11-19: `git ls-remote https://github.com/aelboum/saas-os
+    # refs/tags/v0.15.0^{}` resolves to this SHA. Move it only with
+    # `saas-os-update check` and a reviewed pull request.
+    "saas-os @ git+https://github.com/aelboum/saas-os@cdede956dd884fc816b234f1b546ce3b983b4efc",
+    # Imported directly by this package (declare what you import). Versions
+    # are resolved together with SaaS-OS's own requirements and locked in
+    # uv.lock.
+    "fastapi",
+    "alembic",
+    "pydantic",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+    "ruff",
+    "mypy",
+    "import-linter",
+    "pip-audit",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/marocassist"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S", "BLE", "PL"]
+ignore = [
+    "PLR2004",  # magic values in tests and HTTP status codes
+    "PLR0913",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106", "PLC0415"]
+"src/marocassist/**/routes.py" = ["B008"]
+"src/marocassist/migrations/**/*.py" = ["S608"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+packages = ["marocassist"]
+ignore_missing_imports = true
+# SaaS-OS ships no type stubs for every module; its imports may be Any.
+disallow_untyped_decorators = false
+disallow_subclassing_any = false
+warn_return_any = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -m \"not integration\""
+markers = [
+    "integration: needs a real PostgreSQL 16 and Redis 7 (see backend/README.md)",
+]
+
+[tool.importlinter]
+root_packages = ["marocassist"]
+include_external_packages = true
+
+# "Never import saas_os.control_plane" cannot be an import-linter contract
+# (it refuses subpackages of external packages); it is enforced by
+# tests/test_architecture.py instead.
+
+[[tool.importlinter.contracts]]
+name = "Only migrations use SQLAlchemy and psycopg directly (database chokepoint)"
+type = "forbidden"
+source_modules = [
+    "marocassist.app",
+    "marocassist.api",
+    "marocassist.config",
+    "marocassist.errors",
+    "marocassist.accounts",
+    "marocassist.copilot",
+    "marocassist.permissions",
+    "marocassist.purge",
+    "marocassist.worker",
+    "marocassist.jobs",
+]
+forbidden_modules = ["sqlalchemy", "psycopg"]
+
+[[tool.importlinter.contracts]]
+name = "Feature modules are independent of each other"
+type = "independence"
+modules = ["marocassist.accounts", "marocassist.copilot"]
