@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo appointment form (local test page)</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; }
+      .test-banner { background: #222; color: #fff; padding: 8px 12px; border-radius: 6px; }
+      label { display: block; margin-top: 12px; }
+      .error { color: #b00020; font-size: 13px; }
+      .captcha-placeholder { margin-top: 16px; padding: 12px; border: 1px dashed #999; }
+    </style>
+  </head>
+  <body>
+    <p class="test-banner">
+      LOCAL TEST PAGE for the MarocAssist Copilot prototype. Fictitious form. Not an official website; nothing is
+      submitted anywhere.
+    </p>
+    <h1>Demo appointment form</h1>
+    <div id="summary" role="alert"></div>
+
+    <form id="demo-form" novalidate>
+      <!-- Must never appear in a snapshot: hidden token and password. -->
+      <input type="hidden" name="csrf_token" value="CANARY-CSRF-9f8e7d6c5b4a" />
+
+      <section id="step-1">
+        <h2>Step 1 of 2: Your details</h2>
+        <label for="full-name">Full name</label>
+        <input id="full-name" name="full_name" type="text" required aria-describedby="full-name-error" />
+        <div id="full-name-error" class="error"></div>
+
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" required aria-describedby="email-error" />
+        <div id="email-error" class="error"></div>
+
+        <label for="passport">Passport number</label>
+        <input id="passport" name="passport_number" type="text" required aria-describedby="passport-error" />
+        <div id="passport-error" class="error"></div>
+
+        <label for="account-password">Account password</label>
+        <input id="account-password" name="password" type="password" />
+
+        <button type="button" id="next">Next</button>
+      </section>
+
+      <section id="step-2" hidden>
+        <h2>Step 2 of 2: Choose a date</h2>
+        <label for="service">Service</label>
+        <select id="service" name="service" required>
+          <option value="">Choose…</option>
+          <option value="passport">Passport (demo)</option>
+          <option value="cnie">National ID card (demo)</option>
+        </select>
+        <label for="date">Preferred date</label>
+        <input id="date" name="date" type="date" required />
+        <div class="captcha-placeholder" id="demo-captcha">Security check placeholder (not a real CAPTCHA)</div>
+        <button type="button" id="back">Back</button>
+        <button type="submit">Confirm (demo)</button>
+      </section>
+    </form>
+    <script src="app.js"></script>
+  </body>
+</html>

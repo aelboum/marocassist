@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MarocAssist Copilot</title>
+    <style>
+      :root { font-family: system-ui, sans-serif; color-scheme: light dark; }
+      body { margin: 0; padding: 12px; font-size: 14px; line-height: 1.4; }
+      .banner { font-size: 12px; padding: 8px; border-radius: 6px; background: #e8f3ef; color: #0f3d33; margin-bottom: 12px; }
+      .muted { color: #6b6b70; font-size: 12px; }
+      .notice { padding: 8px; border-radius: 6px; background: #fff3d6; color: #4a3500; }
+      h1 { font-size: 16px; margin: 0 0 4px; }
+      h2 { font-size: 13px; margin: 12px 0 4px; }
+      ul { margin: 0; padding-inline-start: 18px; }
+      button { font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div class="banner" data-testid="independence-banner">
+      MarocAssist is an independent assistant, not affiliated with the Moroccan government. You stay in control of every
+      step.
+    </div>
+    <button id="grant-access" type="button" hidden>Allow on the local test page</button>
+    <div id="content" aria-live="polite"></div>
+    <script type="module" src="/src/sidepanel/main.ts"></script>
+  </body>
+</html>
