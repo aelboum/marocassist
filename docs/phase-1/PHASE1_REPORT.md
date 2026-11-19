@@ -14,8 +14,8 @@ The extension credential (short-lived, revocable, single-permission
 service-account key) is implemented on the backend and tested; AI token
 streaming is not possible on SaaS-OS v0.15.0 and is deferred. An independent
 review found no critical or high issues; its medium finding and five low
-findings were fixed and re-tested. **Commits are blocked**: Git requires an
-SSH signature whose key needs a passphrase in an interactive prompt (§12).
+findings were fixed and re-tested. Commits were first blocked: Git requires an
+SSH signature; unblocked with the owner's approval (§12).
 
 ## 2. Implemented
 
@@ -114,7 +114,7 @@ flow (participant tested directly); CI (no CI pipeline in Phase 1).
 
 ## 9. Open issues
 
-1. Commits blocked by SSH commit signing (§12) — owner action.
+1. Resolved: commit signing (§12).
 2. S-8, S-9, S-10 above.
 3. Owner permissions added later need SaaS-OS permission grant migrations (F-7); `api_key:revoke` was added during Phase 1 — existing dev tenants were recreated, no production tenants exist.
 4. `OIDC_CLIENT_ID` must be copied from the bootstrap log once per fresh stack (SaaS-OS tooling prints it; automation possible in Phase 2).
@@ -145,11 +145,10 @@ Phase 0 documents are unchanged apart from the note above.
 
 ## 12. Commit overview
 
-No commit exists yet. `git commit` hangs: the repository's Git
-configuration signs commits with an SSH key (`commit.gpgsign=true`,
-`gpg.format=ssh`) and Git Bash's `ssh-keygen` asks for the key passphrase
-interactively; it cannot reach the Windows ssh-agent. Signing was not
-bypassed. Planned commits once signing works:
+Ten signed commits on local `main` (not pushed). Signing was unblocked
+after the owner's approval by pointing this repository's Git at the Windows
+OpenSSH `ssh-keygen` (`git config --local gpg.ssh.program`), which uses the
+key already loaded in the Windows ssh-agent. Signing was never bypassed.
 
 1. `docs: Phase 0 architecture audit and roadmap`
 2. `chore: repository baseline and Phase 1 audit`
