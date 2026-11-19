@@ -1,0 +1,41 @@
+# Secrets and local configuration -- never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pat
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Node
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+extension/dist/
+packages/contracts/dist/
+test-results/
+playwright-report/
+e2e/results/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Claude Code local settings
+.claude/settings.local.json
