@@ -1,0 +1,14 @@
+{
+  "name": "@marocassist/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser end-to-end checks against the local Docker Compose stack (development only).",
+  "scripts": {
+    "login": "node login.e2e.mjs",
+    "extension": "node extension.e2e.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.65.1"
+  }
+}
