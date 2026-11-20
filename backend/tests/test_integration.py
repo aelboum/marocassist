@@ -41,14 +41,18 @@ def client(app: FastAPI) -> Iterator[TestClient]:
         yield test_client
 
 
-def _new_user() -> tuple[uuid.UUID, dict[str, str]]:
+def _new_user(*, verified: bool = True) -> tuple[uuid.UUID, dict[str, str]]:
+    """A user signed in as the OIDC callback would sign them in. With
+    `verified`, the identity provider vouched for the email address (the
+    session carries `verified_email`); the address is a reserved test
+    domain and never leaves the test database."""
     from saas_os.core.identity import get_or_create_user_for_external_identity
     from saas_os.core.identity.sessions import issue_session
 
-    user = get_or_create_user_for_external_identity(
-        "http://zitadel.localhost:8081", f"test-{uuid.uuid4().hex}"
-    )
-    _session, token = issue_session(user.id)
+    subject = f"test-{uuid.uuid4().hex}"
+    user = get_or_create_user_for_external_identity("http://zitadel.localhost:8081", subject)
+    email = f"{subject}@example.test" if verified else None
+    _session, token = issue_session(user.id, verified_email=email)
     return user.id, {"Authorization": f"Bearer {token}"}
 
 
@@ -319,8 +323,14 @@ def test_revoked_device_key_stops_working_immediately(
     assert revoke.status_code == 204
     assert client.get(f"/v1/tenants/{tenant}/copilot/session", headers=key).status_code == 401
 
+    # A revoked device is hidden from the list (S-9); SaaS-OS keeps it as a
+    # disabled service account for the audit trail.
     devices = client.get(f"/v1/tenants/{tenant}/copilot/devices", headers=headers).json()
-    assert [d["status"] for d in devices if d["id"] == pairing["device_id"]] == ["disabled"]
+    assert [d for d in devices if d["id"] == pairing["device_id"]] == []
+    from marocassist.copilot.devices import list_devices
+
+    kept = [d for d in list_devices(uuid.UUID(tenant), include_disabled=True)]
+    assert [d.status for d in kept if str(d.id) == pairing["device_id"]] == ["disabled"]
     # Revoking again is harmless; an unknown device is 404.
     again = client.delete(
         f"/v1/tenants/{tenant}/copilot/devices/{pairing['device_id']}", headers=headers

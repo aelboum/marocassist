@@ -55,6 +55,7 @@ def _configure_environment() -> None:
         "AUTH_COOKIE_SECURE": "false",
         "MAROCASSIST_COPILOT_KEY_TTL_SECONDS": "3600",
         "MAROCASSIST_COPILOT_MAX_DEVICES": "2",
+        "MAROCASSIST_COPILOT_MAX_DEVICE_HISTORY": "4",
     }
     for key, value in defaults.items():
         os.environ.setdefault(key, value)

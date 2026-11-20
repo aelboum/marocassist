@@ -9,22 +9,44 @@ Registering grants nothing; roles are created per personal tenant by
 
 from __future__ import annotations
 
+from saas_os.core.permission_grants import PermissionGrantMigration
 from saas_os.core.rbac import register_permission
 
 WORKSPACE = "marocassist.workspace"
 COPILOT = "marocassist.copilot"
+PROFILE = "marocassist.profile"
+CONSENT = "marocassist.consent"
+ACCOUNT = "marocassist.account"
 
 READ = "read"
 UPDATE = "update"
 PAIR = "pair"  # create, list and revoke Copilot device pairings
 USE = "use"  # call the Copilot API with a paired device credential
+ONBOARD = "onboard"  # complete onboarding: profile + required consents at once
+EXPORT = "export"  # download a copy of the account's product data
+DELETE = "delete"  # request deletion of the account
 
-PRODUCT_PERMISSIONS: tuple[tuple[str, str], ...] = (
+PHASE_1_PERMISSIONS: tuple[tuple[str, str], ...] = (
     (WORKSPACE, READ),
     (WORKSPACE, UPDATE),
     (COPILOT, PAIR),
     (COPILOT, USE),
 )
+
+# Added in Phase 2. Tenants provisioned before Phase 2 receive them through
+# the declared grant migration below (SaaS-OS ADR-0060), never by editing
+# roles in place.
+PHASE_2_PERMISSIONS: tuple[tuple[str, str], ...] = (
+    (PROFILE, READ),
+    (PROFILE, UPDATE),
+    (CONSENT, READ),
+    (CONSENT, UPDATE),
+    (ACCOUNT, ONBOARD),
+    (ACCOUNT, EXPORT),
+    (ACCOUNT, DELETE),
+)
+
+PRODUCT_PERMISSIONS: tuple[tuple[str, str], ...] = PHASE_1_PERMISSIONS + PHASE_2_PERMISSIONS
 
 # SaaS-OS permissions the owner needs to pair a device on their own tenant:
 # create a service account, give it the Copilot role, issue and revoke its
@@ -50,6 +72,23 @@ ROLE_PERMISSIONS: dict[str, tuple[tuple[str, str], ...]] = {
     # routes that opt in to API keys. No workspace, profile or billing.
     COPILOT_CLIENT_ROLE: ((COPILOT, USE),),
 }
+
+
+# Append-only (SaaS-OS `saas_os.core.permission_grants`): an applied
+# migration is never edited; a later change is a new entry. Applied to
+# existing tenants by a platform operator:
+#   saas-os-operator apply-permission-grants --namespace marocassist
+#     --module marocassist.permissions --all-tenants --reason "..." [--apply]
+GRANT_NAMESPACE = "marocassist"
+PERMISSION_GRANT_MIGRATIONS: tuple[PermissionGrantMigration, ...] = (
+    PermissionGrantMigration(
+        id="0001_owner_profile_consent_account",
+        namespace=GRANT_NAMESPACE,
+        role_name=OWNER_ROLE,
+        permissions=PHASE_2_PERMISSIONS,
+        reason="Phase 2: profile, consents, onboarding, export and deletion request",
+    ),
+)
 
 
 def register_permissions() -> None:

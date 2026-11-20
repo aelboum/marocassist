@@ -15,8 +15,8 @@ import uuid
 from saas_os.core.tenancy import register_purge_participant
 from saas_os.infra.db import delete, session_scope
 
+from marocassist.accounts import profile, workspace_settings
 from marocassist.accounts.models import PersonalWorkspace
-from marocassist.accounts.workspace_settings import delete_for_tenant
 
 
 class AccountsPurgeParticipant:
@@ -25,7 +25,8 @@ class AccountsPurgeParticipant:
         return "marocassist.accounts"
 
     def purge_tenant_data(self, tenant_id: uuid.UUID) -> None:
-        delete_for_tenant(tenant_id)
+        profile.delete_for_tenant(tenant_id)
+        workspace_settings.delete_for_tenant(tenant_id)
         # Global lookup row (no RLS, see accounts.models): keyed by tenant.
         with session_scope() as session:
             session.execute(

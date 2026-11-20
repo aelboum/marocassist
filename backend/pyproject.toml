@@ -93,6 +93,7 @@ source_modules = [
     "marocassist.errors",
     "marocassist.accounts",
     "marocassist.copilot",
+    "marocassist.privacy",
     "marocassist.permissions",
     "marocassist.purge",
     "marocassist.worker",

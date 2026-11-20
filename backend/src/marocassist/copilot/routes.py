@@ -24,6 +24,7 @@ from saas_os.api.errors import not_found
 from saas_os.core.api_keys import get_api_key
 
 from marocassist.copilot.devices import (
+    DeviceHistoryFullError,
     DeviceLimitReachedError,
     DeviceNotFoundError,
     list_devices,
@@ -72,6 +73,10 @@ def create_device(response: Response, context: RequestContext = Depends(_pair)) 
     except DeviceLimitReachedError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="device_limit_reached"
+        ) from exc
+    except DeviceHistoryFullError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="device_history_full"
         ) from exc
     # The raw key is in this response only; no cache may keep it.
     response.headers["Cache-Control"] = "no-store"
