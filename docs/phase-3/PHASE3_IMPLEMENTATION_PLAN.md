@@ -97,7 +97,7 @@ is owner- or editor-driven and probably larger than the engineering work.
 | E2E (local, Playwright) | Search to source card to official link (`noopener`); expired notice; consulate page labels; RTL in Arabic |
 | Evaluation | Golden set per language; stale-leakage = 0; fact accuracy = 100% on fixture facts |
 | Security | Red-team fixtures; XSS fixtures in titles and snippets; SQL meta-characters in queries; oversize queries |
-| Privacy | Log scan during E2E (no query text, no PII); schema test (no tenant or user columns in global knowledge tables) |
+| Privacy | Log scan during E2E (no query text, no PII); schema test (no tenant or user columns in global knowledge tables); statistics tests: no search term persisted anywhere, cells below 10 searches suppressed or merged, and no suppressed cell derivable from two successive reports |
 
 ## 5. Exit criteria (proposed Phase 3 acceptance)
 

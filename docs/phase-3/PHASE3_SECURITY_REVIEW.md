@@ -105,7 +105,7 @@ The review covers:
 | Topic | Assessment and design |
 |---|---|
 | Lawful basis | Knowledge search processes the user's question (personal data when linked to their account). Basis: performance of the service (Art. 6(1)(b) GDPR). Unchanged from Phase 2. |
-| Data minimisation | Search queries are **not stored** by default. Logs carry route, timing, language, result count and status, never the query text. Zero-result analytics are aggregate counts only. Owner decision 2026-11-20: no individual searches are stored or logged, and counts are reported only for groups large enough that no user can be recognised (proposed minimum: 10 searches per reported cell; smaller cells are suppressed or merged). |
+| Data minimisation | Search queries are **not stored**. Logs carry route, timing, language, result count and status, never the query text. Owner decision 2026-11-20 (final): only aggregated totals; no individual search terms stored and no individual searches logged; at least 10 searches per reported statistical cell (smaller cells are suppressed or merged); no re-identification through successive reports or small subgroups (reports use fixed periods and fixed dimensions, and a cell suppressed in one report is not derivable from the difference with another). The minimum of 10 is a privacy measure, not a guarantee that every re-identification risk is excluded. |
 | Personal data in knowledge documents | Not allowed beyond office-level contact details; enforced by the loader PII scan (T-3). Names of officials are not stored. |
 | Separation | Global knowledge versus tenant tables; different write paths (loader vs app role) and different schemas or tables; tested. |
 | Tenant isolation | Unchanged SaaS-OS RLS for all tenant-side rows (citations, reports, later conversations) |
@@ -123,7 +123,7 @@ The review covers:
 | P3-S1 | Medium | Four-eyes publishing needs a second, independent reviewer; a solo maintainer cannot satisfy it. Not yet appointed (owner, 2026-11-20). | First real content |
 | P3-S2 | Medium | Rights questions Q-K1/Q-K2 are unanswered, so only R1–R3 content is allowed | First public content |
 | P3-S3 | Medium | Branch protection (P2-F7) is a precondition for "content reviewed in a PR" | File-based publishing |
-| P3-S4 | Low | Proposal ID collision: the Phase 0 register used U-4 = "Governed embeddings" and U-5 = "Governed image input"; the Phase 2 work used U-4 for RP-initiated logout and "U-5" for back-channel logout | **Partly resolved** in the Phase 3 docs commit: embeddings is now U-8 and back-channel logout U-10. Image input stays U-5, pending the owner's clarification (report §11, C-1). |
+| P3-S4 | Low | Proposal ID collision: the Phase 0 register used U-4 = "Governed embeddings" and U-5 = "Governed image input"; the Phase 2 work used U-4 for RP-initiated logout and "U-5" for back-channel logout; the Phase 2 plan used "U-3" for log out everywhere | **Resolved** (final numbering 2026-11-20: U-5 image input, U-8 embeddings, U-9 unused, U-10 back-channel logout, U-11 log out everywhere) |
 | P3-S5 | Low | `unaccent` is `STABLE`; generated columns need an `IMMUTABLE` wrapper. That is a known PostgreSQL pattern, but the wrapper must pin the dictionary schema-qualified to avoid `search_path` tricks | Migration |
 | P3-S6 | Info | The import-linter exception for `knowledge.fts` widens the database chokepoint by one module | Accepted with exit U-1 |
 

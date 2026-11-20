@@ -64,11 +64,76 @@ Scale: likelihood (L) / impact (I): Low, Medium, High.
 | U-6 | Device-authorisation or token-exchange flow for first-party extension clients | Later | Low |
 | U-7 | Email template + i18n helper | Later | Low |
 | U-8 | Governed embeddings (only if R-09 materialises; triggers in [ADR-0007](../adr/0007-knowledge-search.md)) | Later | Low |
+| U-9 | Not assigned; intentionally left unused | — | — |
 | U-10 | OIDC back-channel logout (future work in the U-4 proposal) | Later | Low |
+| U-11 | "Log out everywhere": user-initiated ending of the user's other sessions ([§3.1](#31-u-11-log-out-everywhere-design-proposal)) | Before public launch (with U-4) | Medium |
 
-Renumbered on 2026-11-20 (owner decision; Phase 3 report §11, C-1). Before
-that, U-4 was "Governed embeddings" here, while Phase 2 had already used U-4
-for RP-initiated logout. Embeddings moved to U-8, and back-channel logout
-(called "U-5" in the first U-4 draft) is U-10. U-5 remains "Governed image
-input" as in Phase 0. U-9 is not assigned: the requested move of image input
-to U-9 conflicts with keeping U-5 and awaits the owner's clarification.
+**Final numbering (owner decision 2026-11-20):**
+
+- U-1, U-2, U-3, U-6 and U-7 keep their Phase 0 subjects.
+- U-4 is RP-initiated logout.
+- U-5 stays "Governed image input", as in Phase 0.
+- U-8 is governed embeddings. It was "U-4" in the Phase 0 register, which
+  collided with Phase 2's U-4.
+- U-9 is unused.
+- U-10 is back-channel logout. The first U-4 draft called it "U-5".
+- U-11 is "log out everywhere". The Phase 2 plan mistakenly called it "U-3".
+
+All proposals are upstream SaaS-OS proposals. None is implemented.
+
+### 3.1 U-11: "Log out everywhere" (design proposal)
+
+Status: **design proposal only, not implemented, not submitted upstream.** It
+promises nothing about how fast, or whether, external sessions end.
+
+**Goal.** A user can end their relevant active sessions on other devices and
+with other clients, from inside MarocAssist.
+
+**Relationship to U-4 and U-10:**
+
+- **U-4 (RP-initiated logout)** ends the current MarocAssist session and, via
+  the identity provider, the provider session in *this* browser.
+- **U-10 (back-channel logout)** lets the identity provider tell the clients
+  involved that a session has ended, so they can revoke their own sessions.
+- **U-11** describes the broader user feature that combines these: what
+  "everywhere" covers, how it is started, how the user is told the result, and
+  how it is audited.
+
+**What exists today (SaaS-OS v0.15.0, pinned `cdede95`, read in source):**
+
+- `revoke_user_sessions(user_id, *, caller, reason)` in
+  `saas_os.core.identity` revokes every live **platform** session of a user. It
+  takes effect on the next request that presents a revoked session.
+- That function requires the platform permission `platform.session:revoke`.
+  It is reachable through the platform-admin router, not through a self-service
+  product route (Phase 2 plan: "operator-only").
+- Copilot device keys (SaaS-OS service accounts) are separate credentials. A
+  MarocAssist deletion request already revokes them (Phase 2, R2-2). No
+  "log out everywhere" path exists for them yet.
+- The provider (ZITADEL) session is not ended by SaaS-OS at all (P2-F1, U-4).
+
+**Open technical questions:**
+
+1. Which clients and sessions fall under "everywhere"? MarocAssist web
+   sessions on other browsers, Copilot extension device keys, provider
+   sessions, and other applications on the same provider (out of scope for
+   MarocAssist).
+2. How are other devices reached? Platform sessions are revoked server-side
+   and are refused on their next request. Is that enough, or must open tabs be
+   told actively (no push channel exists)?
+3. What is the identity provider's role? Can SaaS-OS ask ZITADEL to end all
+   of a user's provider sessions (beyond U-4's current browser), and with which
+   credentials and governance? Does that depend on U-10?
+4. How is it confirmed that sessions have actually ended? A revoked count from
+   SaaS-OS covers platform sessions only. There is no confirmation for provider
+   sessions, or for clients that do not support back-channel logout.
+5. What happens when a client cannot be reached (offline device, no
+   back-channel support)? Proposed: report "requested", not "done", and rely on
+   server-side revocation at the next request.
+6. Which audit record is required? Who started it (the user), which session
+   classes were targeted, counts per class, outcome per class. No device
+   details beyond ids, no personal data in metadata, and a tenant on every row
+   (SaaS-OS audit rule).
+7. Self-service authority: should SaaS-OS expose a user-scoped variant of
+   `revoke_user_sessions` (own sessions only, rate-limited, re-authentication
+   required), instead of granting a platform permission?

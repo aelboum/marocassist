@@ -235,6 +235,11 @@ is a later product decision (P3-D8).
   - stale-content leakage (expired facts presented without a notice = 0
     allowed);
   - p95 latency (< 300 ms search).
+- **Production search statistics** (owner decision 2026-11-20): only
+  aggregated totals; no search terms stored and no individual searches
+  logged; at least 10 searches per reported cell; no re-identification through
+  successive reports or small subgroups. The minimum of 10 is a privacy
+  measure, not a guarantee.
 - **Process:** run in CI against a fixture corpus with no network. Report the
   results per language. The thresholds in the ADR trigger a re-evaluation of
   embeddings.

@@ -116,7 +116,7 @@ and over two consecutive evaluation cycles:
 | Trigger | Threshold |
 |---|---|
 | Golden-set recall@6 (the right source among the top 6) | below 0.85 for any language |
-| Zero-result rate (aggregated counts only; no query text stored without consent) | above 10% of searches for 30 days |
+| Zero-result rate (aggregated totals only, at least 10 searches per reported cell; no search terms stored, no individual searches logged) | above 10% of searches for 30 days |
 | Corpus size | above 20,000 published chunks, or more than 3 countries |
 | Cross-lingual need | more than 20% of the golden set needs a match across languages that synonyms cannot cover |
 
