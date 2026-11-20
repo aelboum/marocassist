@@ -109,8 +109,8 @@ def test_only_the_copilot_session_route_accepts_api_keys(app: FastAPI) -> None:
     opt_in = re.compile(r"require_permission\([^)]*api_key=True")
     source = (SRC / "copilot" / "routes.py").read_text(encoding="utf-8")
     assert len(opt_in.findall(source)) == 1
-    accounts = (SRC / "accounts" / "routes.py").read_text(encoding="utf-8")
-    assert "api_key=True" not in accounts
+    for other in ("accounts/routes.py", "privacy/routes.py"):
+        assert "api_key=True" not in (SRC / other).read_text(encoding="utf-8")
 
 
 # --- HTTP behaviour without services ---------------------------------------------
@@ -140,6 +140,29 @@ def test_authenticated_routes_refuse_missing_credentials(
 ) -> None:
     response = TestClient(app).request(method, path)
     assert response.status_code == 401
+
+
+_PUBLIC_PATHS = {"/healthz", "/readyz", "/v1/meta", "/auth/login", "/auth/callback"}
+
+
+def test_every_product_route_refuses_missing_credentials(app: FastAPI) -> None:
+    """401 matrix, generated from the OpenAPI document so a new route is
+    covered without editing this test."""
+    import uuid
+
+    client = TestClient(app)
+    checked = 0
+    for path, operations in app.openapi()["paths"].items():
+        if path in _PUBLIC_PATHS or not path.startswith("/v1/"):
+            continue
+        concrete = path.replace("{tenant_id}", str(uuid.uuid4()))
+        concrete = concrete.replace("{device_id}", str(uuid.uuid4()))
+        concrete = concrete.replace("{purpose}", "product_emails")
+        for method in operations:
+            response = client.request(method.upper(), concrete, json={})
+            assert response.status_code == 401, (method, path, response.status_code)
+            checked += 1
+    assert checked >= 17
 
 
 def _handler_app() -> FastAPI:
@@ -226,6 +249,71 @@ def test_copilot_client_role_holds_only_copilot_use() -> None:
     assert ROLE_PERMISSIONS[COPILOT_CLIENT_ROLE] == ((COPILOT, USE),)
 
 
+def test_owner_role_holds_every_product_permission_but_not_device_use() -> None:
+    from marocassist.permissions import (
+        COPILOT,
+        OWNER_ROLE,
+        PRODUCT_PERMISSIONS,
+        ROLE_PERMISSIONS,
+        USE,
+    )
+
+    owner = set(ROLE_PERMISSIONS[OWNER_ROLE])
+    assert set(PRODUCT_PERMISSIONS) - owner == set()
+    assert (COPILOT, USE) in owner  # the owner may test the session route
+
+
+def test_phase_2_permissions_reach_existing_tenants_through_a_grant_migration() -> None:
+    from saas_os.core.permission_grants import validate_permission_grant_migrations
+
+    from marocassist.permissions import (
+        GRANT_NAMESPACE,
+        OWNER_ROLE,
+        PERMISSION_GRANT_MIGRATIONS,
+        PHASE_2_PERMISSIONS,
+    )
+
+    validate_permission_grant_migrations(PERMISSION_GRANT_MIGRATIONS, namespace=GRANT_NAMESPACE)
+    granted = {
+        permission
+        for migration in PERMISSION_GRANT_MIGRATIONS
+        if migration.role_name == OWNER_ROLE
+        for permission in migration.permissions
+    }
+    assert set(PHASE_2_PERMISSIONS) <= granted
+
+
+def test_personal_tenant_name_is_stable_and_opaque() -> None:
+    import uuid
+
+    from marocassist.accounts.provisioning import personal_tenant_name
+
+    user = uuid.uuid4()
+    name = personal_tenant_name(user)
+    assert name == personal_tenant_name(user)
+    assert name != personal_tenant_name(uuid.uuid4())
+    assert str(user) not in name
+    assert re.fullmatch(r"personal-[0-9a-f]{32}", name)
+
+
+def test_phase_2_migration_enables_forced_rls_and_minimal_grants() -> None:
+    migration = (SRC / "migrations" / "versions" / "0002_profile_consents.py").read_text(
+        encoding="utf-8"
+    )
+    assert '("profiles", "consents", "deletion_requests")' in migration
+    assert "tenant_rls_statements(table" in migration
+    assert "GRANT ALL" not in migration.upper()
+    assert "INSERT, DELETE ON {_SCHEMA}.deletion_requests" in migration
+    assert "UPDATE, DELETE ON {_SCHEMA}.deletion_requests" not in migration
+
+
+def test_audit_metadata_of_product_actions_holds_no_personal_values() -> None:
+    """Profile changes audit field names only, never the new values."""
+    source = (SRC / "accounts" / "profile.py").read_text(encoding="utf-8")
+    assert 'metadata={"fields": changed}' in source
+    assert "display_name" not in source.split("def _audit", 1)[1].split("def ", 1)[0]
+
+
 def test_migration_enables_forced_rls_on_tenant_tables() -> None:
     migration = (SRC / "migrations" / "versions" / "0001_accounts.py").read_text(encoding="utf-8")
     assert 'tenant_rls_statements("workspace_settings"' in migration
@@ -248,3 +336,27 @@ def test_openapi_contract_is_up_to_date(app: FastAPI) -> None:
     """The committed contract must match the running app. Regenerate with
     `uv run python -m tests.export_openapi` after an intended API change."""
     assert CONTRACT.read_text(encoding="utf-8") == _current_contract(app)
+
+
+def test_provisioning_waits_for_a_free_slot_and_then_gives_up(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """S-8: concurrent provisionings are bounded, so they cannot hold every
+    pooled connection; a request that finds no slot fails fast (503)."""
+    import uuid
+
+    from marocassist.accounts import provisioning
+
+    monkeypatch.setattr(provisioning, "get_personal_tenant_id", lambda _user: None)
+    monkeypatch.setattr(provisioning, "_PROVISIONING_WAIT_SECONDS", 0.05)
+    held = [
+        provisioning._provisioning_slots.acquire(blocking=False)
+        for _ in range(provisioning.MAX_CONCURRENT_PROVISIONINGS)
+    ]
+    assert all(held)
+    try:
+        with pytest.raises(provisioning.ProvisioningBusyError):
+            provisioning.ensure_personal_workspace(uuid.uuid4())
+    finally:
+        for _ in held:
+            provisioning._provisioning_slots.release()

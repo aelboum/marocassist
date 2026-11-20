@@ -32,6 +32,7 @@ from saas_os.core.api_keys import (
 )
 from saas_os.core.authority import UserCaller
 from saas_os.core.identity import (
+    ServiceAccount,
     ServiceAccountStatus,
     create_service_account,
     disable_service_account,
@@ -52,6 +53,11 @@ _KEY_NAME = "copilot"
 
 class DeviceLimitReachedError(Exception):
     """The tenant already has the maximum number of active devices."""
+
+
+class DeviceHistoryFullError(Exception):
+    """The tenant has paired the maximum number of devices over its
+    lifetime (`MAROCASSIST_COPILOT_MAX_DEVICE_HISTORY`)."""
 
 
 class DeviceNotFoundError(Exception):
@@ -77,7 +83,14 @@ def _is_device(name: str) -> bool:
     return name.startswith(DEVICE_NAME_PREFIX)
 
 
-def list_devices(tenant_id: uuid.UUID) -> list[Device]:
+def _device_accounts(tenant_id: uuid.UUID) -> list[ServiceAccount]:
+    return [account for account in list_service_accounts(tenant_id) if _is_device(account.name)]
+
+
+def list_devices(tenant_id: uuid.UUID, *, include_disabled: bool = False) -> list[Device]:
+    """Paired devices. A revoked device stays in SaaS-OS as a disabled
+    service account (its audit trail refers to it); it is hidden here
+    unless `include_disabled` (Phase 1 finding S-9)."""
     keys = list_api_keys(tenant_id)
     expiry: dict[uuid.UUID, datetime | None] = {}
     for key in keys:
@@ -90,8 +103,8 @@ def list_devices(tenant_id: uuid.UUID) -> list[Device]:
             created_at=account.created_at,
             key_expires_at=expiry.get(account.id),
         )
-        for account in list_service_accounts(tenant_id)
-        if _is_device(account.name)
+        for account in _device_accounts(tenant_id)
+        if include_disabled or account.status == ServiceAccountStatus.ACTIVE.value
     ]
 
 
@@ -117,9 +130,12 @@ def pair_device(user_id: uuid.UUID, tenant_id: uuid.UUID) -> PairingResult:
 def _pair_device_locked(user_id: uuid.UUID, tenant_id: uuid.UUID) -> PairingResult:
     settings = get_settings()
     caller = UserCaller(user_id)
-    active = [d for d in list_devices(tenant_id) if d.status == ServiceAccountStatus.ACTIVE.value]
+    accounts = _device_accounts(tenant_id)
+    active = [a for a in accounts if a.status == ServiceAccountStatus.ACTIVE.value]
     if len(active) >= settings.copilot_max_devices:
         raise DeviceLimitReachedError
+    if len(accounts) >= settings.copilot_max_device_history:
+        raise DeviceHistoryFullError
 
     role_id = _copilot_client_role_id(tenant_id)
     account = create_service_account(

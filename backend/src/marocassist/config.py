@@ -20,6 +20,11 @@ _COPILOT_KEY_TTL_MAX = 12 * 60 * 60
 _COPILOT_KEY_TTL_MIN = 5 * 60
 _COPILOT_MAX_DEVICES_DEFAULT = 3
 _COPILOT_MAX_DEVICES_MAX = 10
+# SaaS-OS keeps a revoked device as a disabled service account (it has no
+# delete), so repeated pair/revoke cycles grow the tenant's identity list.
+# Every pairing ever made counts; the tenant purge removes them all.
+_COPILOT_MAX_DEVICE_HISTORY_DEFAULT = 50
+_COPILOT_MAX_DEVICE_HISTORY_MAX = 500
 
 
 class ConfigurationError(ValueError):
@@ -31,6 +36,7 @@ class ConfigurationError(ValueError):
 class ProductSettings:
     copilot_key_ttl_seconds: int
     copilot_max_devices: int
+    copilot_max_device_history: int
 
 
 def _int_setting(name: str, default: int, minimum: int, maximum: int) -> int:
@@ -60,5 +66,11 @@ def get_settings() -> ProductSettings:
             _COPILOT_MAX_DEVICES_DEFAULT,
             1,
             _COPILOT_MAX_DEVICES_MAX,
+        ),
+        copilot_max_device_history=_int_setting(
+            "MAROCASSIST_COPILOT_MAX_DEVICE_HISTORY",
+            _COPILOT_MAX_DEVICE_HISTORY_DEFAULT,
+            1,
+            _COPILOT_MAX_DEVICE_HISTORY_MAX,
         ),
     )
