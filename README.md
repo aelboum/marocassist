@@ -13,7 +13,7 @@ consular procedures. Two parts:
 
 MarocAssist is not affiliated with the Moroccan government.
 
-**Status: Phase 1 (technical foundation) implemented, awaiting owner review.**
+**Status: Phase 1 (technical foundation) implemented and approved by the owner (2026-11-20).**
 See `docs/phase-1/PHASE1_REPORT.md`. Development only: nothing is deployed.
 
 ## Local development

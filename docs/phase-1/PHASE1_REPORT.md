@@ -1,7 +1,8 @@
 # Phase 1 report — Technical foundation
 
-Date: 2026-11-19. Status: implemented locally, **awaiting owner review**.
-Nothing pushed, merged, released or deployed. Repository remains PUBLIC.
+Date: 2026-11-19. Status: **approved by the product owner on 2026-11-20**
+(see §15). Pushed to `main` with the owner's permission; nothing merged,
+released or deployed. Repository remains PUBLIC until MarocAssist is finished.
 
 ## 1. Executive summary
 
@@ -145,7 +146,8 @@ Phase 0 documents are unchanged apart from the note above.
 
 ## 12. Commit overview
 
-Ten signed commits on local `main` (not pushed). Signing was unblocked
+Signed commits on `main`, pushed to `origin/main` on 2026-11-20 with the
+owner's permission. Signing was unblocked
 after the owner's approval by pointing this repository's Git at the Windows
 OpenSSH `ssh-keygen` (`git config --local gpg.ssh.program`), which uses the
 key already loaded in the Windows ssh-agent. Signing was never bypassed.
@@ -160,6 +162,8 @@ key already loaded in the Windows ssh-agent. Signing was never bypassed.
 8. `feat(dev): Docker Compose stack, edge and local identity`
 9. `test(e2e): browser checks for login and extension`
 10. `docs: Phase 1 reports, ADRs and READMEs`
+11. `docs: record signed commit history in the Phase 1 report`
+12. `docs: record owner approval of Phase 1`
 
 ## 13. Phase 1 acceptance criteria
 
@@ -184,9 +188,17 @@ key already loaded in the Windows ssh-agent. Signing was never bypassed.
 
 ## 14. Advice for Phase 2
 
-1. Unblock signed commits, review and commit; set up CI (backend, web, extension, integration, E2E) and branch protection.
+1. Set up CI (backend, web, extension, integration, E2E) and branch protection.
 2. Nonce-based CSP for the web app; CSRF review of all cookie mutations.
 3. Provisioning hardening (S-8): short lock session, reaper for orphan tenants, ADR-0060 grant-migration module.
 4. Sign-up/verification flow and consent records (Phase 2 scope of the roadmap); purge flow through the operator command.
 5. Automate `OIDC_CLIENT_ID` handover in the dev stack.
 6. Keep the repository decision: make it private after this review, as planned.
+
+## 15. Owner decision
+
+- 2026-11-20: the product owner approved Phase 1 ("akkoord phase 1").
+- 2026-11-20: the owner gave permission to push to `main`.
+- Repository visibility: stays PUBLIC until MarocAssist is finished; the
+  owner decides then. No visibility change without explicit owner consent.
+- Open review findings S-8, S-9 and S-10 (§8, §9) move to Phase 2.
