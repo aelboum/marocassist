@@ -229,6 +229,16 @@ services:
       ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2100-01-01T00:00:00Z"
       ZITADEL_FIRSTINSTANCE_PATPATH: /bootstrap/bootstrap.pat
       ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "false"
+      # Account lifecycle (Phase 2): self-registration, email verification
+      # and password reset mails go to the local Mailpit (development only,
+      # no TLS, no credentials; Mailpit never delivers anything). MFA is
+      # offered but not forced (decision P2-1).
+      ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_ALLOWREGISTER: "true"
+      ZITADEL_DEFAULTINSTANCE_LOGINPOLICY_FORCEMFA: "false"
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_HOST: mailpit:1025
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_TLS: "false"
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROM: no-reply@marocassist.localhost
+      ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROMNAME: MarocAssist (local)
     ports:
       - "127.0.0.1:${ZITADEL_LOCAL_PORT}:${ZITADEL_LOCAL_PORT}"
     volumes:
@@ -238,6 +248,8 @@ services:
         aliases:
           - zitadel.localhost
     depends_on:
+      mailpit:
+        condition: service_started
       zitadel-db:
         condition: service_healthy
       zitadel-bootstrap-vol-init:

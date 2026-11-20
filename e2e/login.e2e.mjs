@@ -32,10 +32,10 @@ const context = await browser.newContext({ locale: "nl-NL" });
 const page = await context.newPage();
 try {
   await page.goto(`${ORIGIN}/dashboard`);
-  await page.getByRole("link", { name: "Inloggen" }).waitFor();
+  await page.getByRole("link", { name: "Inloggen", exact: true }).waitFor();
   check("anonymous dashboard shows the sign-in link", true);
 
-  await page.getByRole("link", { name: "Inloggen" }).click();
+  await page.getByRole("link", { name: "Inloggen", exact: true }).click();
   await page.waitForURL(/zitadel\.localhost:8081/);
   check("sign-in redirects to the identity provider", true, new URL(page.url()).host);
 
@@ -62,6 +62,16 @@ try {
   const visibleToScript = await page.evaluate(() => document.cookie.includes("saas_os_session"));
   check("session cookie is not readable by page JavaScript", !visibleToScript);
 
+  // Phase 2: a first sign-in onboards before the dashboard (the admin's
+  // email is verified by the bootstrap). A re-run finds it done.
+  const onboarding = page.getByTestId("onboarding-form");
+  await Promise.race([onboarding.waitFor(), page.getByTestId("tenant-id").waitFor()]);
+  if (await onboarding.isVisible()) {
+    await page.locator("input[name=age_confirmed]").check();
+    await page.locator("input[name=privacy_notice]").check();
+    await page.getByRole("button", { name: "Doorgaan" }).click();
+  }
+  check("first sign-in goes through onboarding", true);
   const tenantId = (await page.getByTestId("tenant-id").textContent())?.trim();
   check("dashboard shows the personal workspace", /^[0-9a-f-]{36}$/.test(tenantId ?? ""), tenantId?.slice(0, 8));
 
