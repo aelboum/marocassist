@@ -40,7 +40,7 @@ v4.19.5 `cmd/defaults.yaml`.
 | Product email | `send_email` / `dispatch_notification`; no templates, no i18n | Phase 2 sends no product email; account mails come from ZITADEL |
 | PII in logs | Formatter redacts credential keys only, not email or names | Never log personal values; log-scan test over the E2E run |
 | Same-origin cookie mutations | Enforced for every non-GET cookie request (`api/dependencies.py:336`) | Already tested; extended to every new mutation |
-| Self-service session list / "log out everywhere" | Not provided (operator-only `revoke_user_sessions`) | Out of scope; noted as upstream proposal U-3 |
+| Self-service session list / "log out everywhere" | Not provided (operator-only `revoke_user_sessions`) | Out of scope; noted as upstream proposal U-11 (renumbered from a mistaken "U-3" on 2026-11-20; U-3 is streaming inference) |
 
 ZITADEL v4.19.5 defaults: `LOGINPOLICY_ALLOWREGISTER: true`, MFA not forced,
 password reset shown, minimum password length 8 with all character classes.

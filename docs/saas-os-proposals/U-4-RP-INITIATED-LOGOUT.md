@@ -195,7 +195,7 @@ The OpenAPI schema gains an optional 200 response model `ProviderLogout`.
 
 | ID | Risk | Mitigation |
 |---|---|---|
-| R-1 | The user closes the tab before the provider redirect completes, so the provider session survives. | UI text "close the browser on a shared computer"; back-channel logout (U-5, future). |
+| R-1 | The user closes the tab before the provider redirect completes, so the provider session survives. | UI text "close the browser on a shared computer"; back-channel logout (U-10, future). |
 | R-2 | ZITADEL's `end_session` without `id_token_hint` logs out all users of this user agent (ZITADEL docs: "current implementation"). | Acceptable, and arguably desirable on a shared computer. Document it. |
 | R-3 | Other applications on the same provider keep their own tokens; a community report says refresh tokens of other clients stay valid. | Out of scope: MarocAssist is the only client and uses no refresh tokens. |
 | R-4 | The ZITADEL account chooser still shows the previous account's name and email after logout (observed). | Password required; remove-account option or provider setting to investigate (NOT TESTED). |
@@ -289,7 +289,7 @@ These are estimates, not measurements.
 
 ## Future work (not part of U-4)
 
-**U-5: OIDC back-channel logout.** ZITADEL advertises it. It would revoke
+**U-10: OIDC back-channel logout.** ZITADEL advertises it. It would revoke
 platform sessions when the user signs out elsewhere or an administrator ends
 their sessions, which covers R-1. It needs a new public endpoint with logout
 token validation, so it is a separate proposal.
