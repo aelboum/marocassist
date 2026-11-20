@@ -59,7 +59,16 @@ Scale: likelihood (L) / impact (I): Low, Medium, High.
 | U-1 | Export FTS primitives from `saas_os.infra.db` | Phase 3 | High |
 | U-2 | Product-data hook for user erasure (participant protocol like purge) | Phase 9 | Medium |
 | U-3 | Streaming inference (support existing issue #206) | Phase 6 | Medium |
-| U-4 | Governed embeddings (only if R-09 materialises) | Later | Low |
+| U-4 | RP-initiated logout ([proposal](../saas-os-proposals/U-4-RP-INITIATED-LOGOUT.md); closes P2-F1) | Before production (P2-F1 is a production blocker) | High |
 | U-5 | Governed image input (only if D-12 changes) | Later | Low |
 | U-6 | Device-authorisation or token-exchange flow for first-party extension clients | Later | Low |
 | U-7 | Email template + i18n helper | Later | Low |
+| U-8 | Governed embeddings (only if R-09 materialises; triggers in [ADR-0007](../adr/0007-knowledge-search.md)) | Later | Low |
+| U-10 | OIDC back-channel logout (future work in the U-4 proposal) | Later | Low |
+
+Renumbered on 2026-11-20 (owner decision; Phase 3 report §11, C-1). Before
+that, U-4 was "Governed embeddings" here, while Phase 2 had already used U-4
+for RP-initiated logout. Embeddings moved to U-8, and back-channel logout
+(called "U-5" in the first U-4 draft) is U-10. U-5 remains "Governed image
+input" as in Phase 0. U-9 is not assigned: the requested move of image input
+to U-9 conflicts with keeping U-5 and awaits the owner's clarification.
