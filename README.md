@@ -13,8 +13,10 @@ consular procedures. Two parts:
 
 MarocAssist is not affiliated with the Moroccan government.
 
-**Status: Phase 1 (technical foundation) implemented and approved by the owner (2026-11-20).**
-See `docs/phase-1/PHASE1_REPORT.md`. Development only: nothing is deployed.
+**Status: Phase 1 (technical foundation) approved by the owner (2026-11-20).
+Phase 2 (identity and account lifecycle) implemented on branch `phase-2`,
+awaiting owner review.** See `docs/phase-2/PHASE2_REPORT.md`. Development
+only: nothing is deployed.
 
 ## Local development
 
@@ -32,7 +34,7 @@ docker compose up -d backend worker
 | http://localhost:8080 | Web app + API on one origin (`/auth/*`, `/v1/*`, `/healthz`, `/readyz` → backend) |
 | http://zitadel.localhost:8081 | Local identity provider (login `admin@marocassist-local.zitadel.localhost`, password in `.env`) |
 | http://localhost:8090 | Copilot test website (fictitious form) |
-| http://127.0.0.1:8025 | Mailpit (captured development e-mail) |
+| http://127.0.0.1:8025 | Mailpit (captured development e-mail, incl. ZITADEL sign-up and password-reset mail) |
 
 Extension: `cd extension && npm ci && npm run build`, then load `extension/dist`
 as an unpacked extension (`docs/phase-1/EXTENSION_PROTOTYPE.md`).
@@ -44,7 +46,8 @@ as an unpacked extension (`docs/phase-1/EXTENSION_PROTOTYPE.md`).
 | Backend | `cd backend && uv run ruff check src tests && uv run mypy && uv run lint-imports && uv run pytest && uv run pytest -m integration` (integration needs `docker compose up -d db redis` and `docker compose run --rm migrate`) |
 | Web | `cd web && npm ci && npm run typecheck && npm run lint && npm test && npm run build` |
 | Extension | `cd extension && npm ci && npm run typecheck && npm run lint && npm test && npm run build` |
-| End-to-end | `cd e2e && npm ci && npx playwright install chromium && node login.e2e.mjs && node extension.e2e.mjs` (full stack running) |
+| End-to-end | `cd e2e && npm ci && npx playwright install chromium && node login.e2e.mjs && node signup.e2e.mjs && node extension.e2e.mjs` (full stack running) |
+| CI | `.github/workflows/ci.yml`: backend, integration (PostgreSQL 16 + Redis 7), web, extension, security (pip-audit, npm audit, gitleaks) on every pull request and push to `main` |
 
 ## Executive summary (Phase 0, 2026-11-19)
 
@@ -87,7 +90,8 @@ as an unpacked extension (`docs/phase-1/EXTENSION_PROTOTYPE.md`).
 | Roadmap | [Product roadmap](docs/roadmap/PRODUCT_ROADMAP.md) · [Implementation plan](docs/roadmap/IMPLEMENTATION_PLAN.md) · [MVP scope](docs/roadmap/MVP_SCOPE.md) · [Acceptance criteria](docs/roadmap/ACCEPTANCE_CRITERIA.md) · [Risks & decisions](docs/roadmap/RISKS_AND_DECISIONS.md) |
 | Research | [Official data sources](docs/research/OFFICIAL_DATA_SOURCES.md) · [RDV integration](docs/research/RDV_INTEGRATION_ASSESSMENT.md) · [External APIs](docs/research/EXTERNAL_API_REQUIREMENTS.md) |
 | Phase 1 | [Report](docs/phase-1/PHASE1_REPORT.md) · [Audit and plan](docs/phase-1/PHASE1_AUDIT_AND_PLAN.md) · [SaaS-OS integration matrix](docs/phase-1/SAAS_OS_INTEGRATION_MATRIX.md) · [Extension authentication](docs/phase-1/EXTENSION_AUTH.md) · [Streaming spike](docs/phase-1/STREAMING_SPIKE.md) · [Extension prototype](docs/phase-1/EXTENSION_PROTOTYPE.md) |
-| Decisions | [ADR-0001 pin](docs/adr/0001-saas-os-pin-and-boundary.md) · [ADR-0002 monorepo](docs/adr/0002-monorepo-layout.md) · [ADR-0003 personal tenant](docs/adr/0003-personal-tenant-provisioning.md) · [ADR-0004 extension credential](docs/adr/0004-extension-device-credential.md) |
+| Phase 2 | [Report](docs/phase-2/PHASE2_REPORT.md) · [Audit and plan](docs/phase-2/PHASE2_AUDIT_AND_PLAN.md) · [Runbook: account deletion](docs/runbooks/ACCOUNT_DELETION.md) |
+| Decisions | [ADR-0001 pin](docs/adr/0001-saas-os-pin-and-boundary.md) · [ADR-0002 monorepo](docs/adr/0002-monorepo-layout.md) · [ADR-0003 personal tenant](docs/adr/0003-personal-tenant-provisioning.md) · [ADR-0004 extension credential](docs/adr/0004-extension-device-credential.md) · [ADR-0005 consent and profile](docs/adr/0005-consent-and-profile-model.md) · [ADR-0006 account deletion](docs/adr/0006-account-deletion-flow.md) |
 | Packages | [backend](backend/README.md) · [contracts](packages/contracts/README.md) · [deploy](deploy/README.md) · [knowledge](knowledge/README.md) |
 
 Every Phase 0 document classifies its findings as **VERIFIED**,
