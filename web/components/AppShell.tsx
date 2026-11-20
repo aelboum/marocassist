@@ -10,8 +10,10 @@ import { useT } from "@/lib/locale-context";
 
 export const NAV_ITEMS: ReadonlyArray<{ href: string; label: MessageKey }> = [
   { href: "/dashboard", label: "dashboard" },
+  { href: "/dashboard/profile", label: "profile" },
   { href: "/dashboard/copilot", label: "copilot" },
   { href: "/dashboard/settings", label: "settings" },
+  { href: "/dashboard/account", label: "account" },
 ];
 
 export function AppShell({ children, onSignOut }: { children: ReactNode; onSignOut?: () => void }) {
@@ -46,7 +48,9 @@ export function AppShell({ children, onSignOut }: { children: ReactNode; onSignO
         </div>
       </header>
       <main className="shell-main">{children}</main>
-      <footer className="shell-footer">{t("tagline")}</footer>
+      <footer className="shell-footer">
+        {t("tagline")} <Link href="/privacy">{t("privacy")}</Link>
+      </footer>
     </div>
   );
 }

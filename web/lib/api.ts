@@ -58,22 +58,65 @@ export function createApiClient(fetchImpl: FetchLike = (input, init) => fetch(in
     return (await response.json()) as T;
   }
 
+  const tenant = (tenantId: string, suffix: string) => `/v1/tenants/${encodeURIComponent(tenantId)}/${suffix}`;
+
   return {
     me: () => request<{ user_id: string }>("GET", "/auth/me"),
     logout: () => request<void>("POST", "/auth/logout"),
     meta: () => request<{ product: string; version: string; api_version: string }>("GET", "/v1/meta"),
     ensureWorkspace: () => request<{ tenant_id: string; created: boolean }>("POST", "/v1/me/workspace"),
-    readSettings: (tenantId: string) =>
-      request<{ locale: string }>("GET", `/v1/tenants/${encodeURIComponent(tenantId)}/workspace/settings`),
+    readSettings: (tenantId: string) => request<{ locale: string }>("GET", tenant(tenantId, "workspace/settings")),
     updateSettings: (tenantId: string, locale: string) =>
-      request<{ locale: string }>("PUT", `/v1/tenants/${encodeURIComponent(tenantId)}/workspace/settings`, { locale }),
-    listDevices: (tenantId: string) =>
-      request<Array<{ id: string; status: string; created_at: string; key_expires_at: string | null }>>(
-        "GET",
-        `/v1/tenants/${encodeURIComponent(tenantId)}/copilot/devices`,
-      ),
+      request<{ locale: string }>("PUT", tenant(tenantId, "workspace/settings"), { locale }),
+    onboardingStatus: (tenantId: string) => request<OnboardingStatus>("GET", tenant(tenantId, "onboarding")),
+    completeOnboarding: (tenantId: string, body: OnboardingInput) =>
+      request<{ onboarded: boolean; created: boolean }>("POST", tenant(tenantId, "onboarding"), body),
+    readProfile: (tenantId: string) => request<Profile>("GET", tenant(tenantId, "profile")),
+    updateProfile: (tenantId: string, body: { display_name: string | null; consulate: string | null }) =>
+      request<Profile>("PUT", tenant(tenantId, "profile"), body),
+    readConsents: (tenantId: string) => request<Consent[]>("GET", tenant(tenantId, "consents")),
+    setConsent: (tenantId: string, purpose: string, granted: boolean, version: string) =>
+      request<Consent[]>("PUT", tenant(tenantId, `consents/${encodeURIComponent(purpose)}`), { granted, version }),
+    exportAccount: (tenantId: string) => request<Record<string, unknown>>("GET", tenant(tenantId, "account/export")),
+    readDeletionRequest: (tenantId: string) =>
+      request<DeletionRequest>("GET", tenant(tenantId, "account/deletion-request")),
+    requestDeletion: (tenantId: string) => request<DeletionRequest>("POST", tenant(tenantId, "account/deletion-request")),
+    listDevices: (tenantId: string) => request<Device[]>("GET", tenant(tenantId, "copilot/devices")),
+    revokeDevice: (tenantId: string, deviceId: string) =>
+      request<void>("DELETE", tenant(tenantId, `copilot/devices/${encodeURIComponent(deviceId)}`)),
   };
 }
+
+export type OnboardingStatus = {
+  onboarded: boolean;
+  privacy_notice_current: boolean;
+  privacy_notice_version: string;
+  consulates: string[];
+};
+export type OnboardingInput = {
+  display_name: string | null;
+  consulate: string | null;
+  locale: string;
+  age_confirmed: boolean;
+  privacy_notice_version: string;
+  product_emails: boolean;
+};
+export type Profile = {
+  display_name: string | null;
+  consulate: string | null;
+  residence_country: string;
+  onboarded_at: string | null;
+};
+export type Consent = {
+  purpose: string;
+  version: string;
+  granted: boolean;
+  source: string;
+  decided_at: string;
+  current_version: string;
+};
+export type DeletionRequest = { requested: boolean; requested_at: string | null };
+export type Device = { id: string; status: string; created_at: string; key_expires_at: string | null };
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 export const api = createApiClient();

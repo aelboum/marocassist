@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { useReadySession } from "@/components/AuthGate";
-import { ApiError, api } from "@/lib/api";
+import { ApiError, api, type Consent } from "@/lib/api";
 import { isLocale, LOCALES } from "@/lib/i18n";
 import { useT } from "@/lib/locale-context";
 
@@ -12,13 +12,29 @@ export default function SettingsPage() {
   const { tenantId } = useReadySession();
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [consents, setConsents] = useState<Consent[] | null>(null);
 
   useEffect(() => {
     api
       .readSettings(tenantId)
       .then((s) => setSaved(s.locale))
       .catch((e: unknown) => setError(e instanceof ApiError ? e.code : "network_error"));
+    api
+      .readConsents(tenantId)
+      .then(setConsents)
+      .catch((e: unknown) => setError(e instanceof ApiError ? e.code : "network_error"));
   }, [tenantId]);
+
+  async function toggleEmails(consent: Consent, granted: boolean) {
+    try {
+      setConsents(await api.setConsent(tenantId, consent.purpose, granted, consent.current_version));
+      setError(null);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.code : "network_error");
+    }
+  }
+
+  const emails = consents?.find((c) => c.purpose === "product_emails");
 
   async function update(locale: string) {
     if (!isLocale(locale)) return;
@@ -48,6 +64,18 @@ export default function SettingsPage() {
           </select>
         </label>
       )}
+      <h2>{t("consents")}</h2>
+      {emails ? (
+        <label className="check">
+          <input
+            type="checkbox"
+            data-testid="consent-product-emails"
+            checked={emails.granted}
+            onChange={(e) => void toggleEmails(emails, e.target.checked)}
+          />
+          <span>{t("productEmails")}</span>
+        </label>
+      ) : null}
     </section>
   );
 }

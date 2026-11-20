@@ -6,6 +6,11 @@ import { ApiError, createApiClient } from "@/lib/api";
 import { direction, LOCALES, messageKeys, resolveLocale, t } from "@/lib/i18n";
 import { LocaleProvider } from "@/lib/locale-context";
 import { useSession } from "@/lib/session";
+import { buildCsp } from "@/proxy";
+import { Onboarding } from "@/components/Onboarding";
+import { CONSULATE_CODES, consulateKey } from "@/lib/i18n";
+import { readFileSync } from "node:fs";
+import { fireEvent } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
@@ -84,12 +89,38 @@ describe("session", () => {
     await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("anonymous"));
   });
 
-  it("is ready with the personal workspace after sign-in", async () => {
+  function backend(onboarded: boolean, current = true) {
+    return createApiClient(async (path) => {
+      if (path === "/auth/me") return jsonResponse(200, { user_id: "u1" });
+      if (path === "/v1/me/workspace") return jsonResponse(200, { tenant_id: "t1", created: false });
+      return jsonResponse(200, {
+        onboarded,
+        privacy_notice_current: current,
+        privacy_notice_version: "2026-11-draft",
+        consulates: ["nl-amsterdam"],
+      });
+    });
+  }
+
+  it("is ready with the personal workspace after sign-in and onboarding", async () => {
+    render(<SessionProbe client={backend(true)} />);
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready:t1"));
+  });
+
+  it("asks for onboarding first, and for a changed privacy notice", async () => {
+    render(<SessionProbe client={backend(false)} />);
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("onboarding"));
+    cleanup();
+    render(<SessionProbe client={backend(true, false)} />);
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("notice"));
+  });
+
+  it("recognises an unverified email address", async () => {
     const client = createApiClient(async (path) =>
-      path === "/auth/me" ? jsonResponse(200, { user_id: "u1" }) : jsonResponse(200, { tenant_id: "t1", created: false }),
+      path === "/auth/me" ? jsonResponse(200, { user_id: "u1" }) : jsonResponse(403, { detail: "email_not_verified" }),
     );
     render(<SessionProbe client={client} />);
-    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready:t1"));
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("unverified"));
   });
 
   it("reports network errors without crashing", async () => {
@@ -115,5 +146,66 @@ describe("app shell", () => {
     for (const item of NAV_ITEMS) expect(labels).toContain(t("fr", item.label));
     expect(screen.getByText(t("fr", "dashboard")).getAttribute("aria-current")).toBe("page");
     expect(screen.getByText("content")).toBeTruthy();
+  });
+});
+
+describe("content security policy (S-10)", () => {
+  it("allows scripts only with the per-request nonce, never inline or eval in production", () => {
+    const csp = buildCsp("abc123", { dev: false, https: true });
+    expect(csp).toContain("script-src 'self' 'nonce-abc123' 'strict-dynamic'");
+    expect(csp).toContain("style-src 'self' 'nonce-abc123'");
+    expect(csp).not.toContain("unsafe-inline");
+    expect(csp).not.toContain("unsafe-eval");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("connect-src 'self'");
+    expect(csp).toContain("upgrade-insecure-requests");
+    expect(buildCsp("n", { dev: true, https: false })).toContain("'unsafe-eval'");
+    expect(buildCsp("n", { dev: false, https: false })).not.toContain("upgrade-insecure-requests");
+  });
+});
+
+describe("contract with the backend", () => {
+  const backendProfile = readFileSync("../backend/src/marocassist/accounts/profile.py", "utf-8");
+
+  it("shows the privacy notice version the backend accepts", () => {
+    const backendVersion = /PRIVACY_NOTICE_VERSION = "([^"]+)"/.exec(backendProfile)?.[1];
+    const page = readFileSync("app/privacy/page.tsx", "utf-8");
+    expect(page).toContain(`const VERSION = "${backendVersion}"`);
+  });
+
+  it("knows exactly the consulates the backend accepts, with a label in every language", () => {
+    const tuple = /CONSULATES: tuple\[str, \.\.\.\] = \(([^)]*)\)/.exec(backendProfile)?.[1] ?? "";
+    const backendCodes = [...tuple.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    expect([...CONSULATE_CODES]).toEqual(backendCodes);
+    for (const locale of LOCALES) {
+      for (const code of CONSULATE_CODES) expect(t(locale, consulateKey(code)!)).toBeTruthy();
+    }
+  });
+});
+
+describe("onboarding form", () => {
+  it("cannot be submitted before the age and privacy boxes are ticked, and asks nothing more", () => {
+    render(
+      <LocaleProvider locale="nl">
+        <Onboarding
+          tenantId="t1"
+          status={{
+            onboarded: false,
+            privacy_notice_current: false,
+            privacy_notice_version: "2026-11-draft",
+            consulates: [...CONSULATE_CODES],
+          }}
+          onDone={() => undefined}
+        />
+      </LocaleProvider>,
+    );
+    const submit = screen.getByRole("button", { name: t("nl", "continue") }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+    fireEvent.click(screen.getByLabelText(t("nl", "ageConfirm")));
+    expect(submit.disabled).toBe(true);
+    fireEvent.click(screen.getByLabelText(new RegExp(t("nl", "privacyAccept"))));
+    expect(submit.disabled).toBe(false);
+    const names = Array.from(document.querySelectorAll("input, select")).map((el) => el.getAttribute("name"));
+    expect(names.sort()).toEqual(["age_confirmed", "consulate", "display_name", "privacy_notice", "product_emails"]);
   });
 });
