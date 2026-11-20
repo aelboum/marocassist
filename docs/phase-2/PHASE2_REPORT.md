@@ -1,9 +1,15 @@
 # Phase 2 report — Identity and SaaS foundation
 
-Date: 2026-11-20. Status: implemented on the local branch `phase-2`
-(signed commits, not pushed), **awaiting owner review**. Nothing merged,
-released or deployed. Repository remains PUBLIC (owner decision: until
-MarocAssist is finished). Plan: `PHASE2_AUDIT_AND_PLAN.md`.
+Date: 2026-11-20. Status: **technically approved (GO) by the product owner**
+on 2026-11-20. Branch `phase-2` is pushed and open as
+[PR #1](https://github.com/aelboum/marocassist/pull/1) against `main`, and
+**not merged**. GitHub Actions CI ran on the PR and is green (§15). Nothing
+was merged, released or deployed. The repository remains PUBLIC (owner
+decision: until MarocAssist is finished). Plan: `PHASE2_AUDIT_AND_PLAN.md`.
+
+The approval-round status is in §15–§17. Sections 1–14 are the original
+report from before the approval and are kept unchanged, except for this
+status line.
 
 ## 1. Executive summary
 
@@ -178,3 +184,94 @@ consulates-general (to verify) · P2-4 self-declared 18+ · P2-5 draft notice
    placeholders.
 4. Phase 3 (knowledge platform) starts with the content-rights model and
    D-07 (FTS access).
+
+## 15. Owner approval, pull request and GitHub CI (2026-11-20)
+
+**Owner decision.** Phase 2 got technical GO. The owner explicitly allowed
+pushing `phase-2`, opening a PR to `main`, running CI, fixing CI on
+`phase-2`, writing proposal U-4, and updating these docs. The owner did
+**not** allow merging, releasing, tagging, deploying, changing branch
+protection or changing repository visibility.
+
+**Pre-push checks:**
+
+| Check | Result |
+|---|---|
+| Current branch | `phase-2` |
+| Seven commits on `main..phase-2` | Present (`2996b9d` … `18027d2`) |
+| Signatures | `git log --format=%G?` shows `G` (good SSH signature) for all seven |
+| Working tree | Clean |
+| Merge base | `aff36e7`, which equals `main` and `origin/main`; `main` is unchanged |
+| `.env` | Not tracked (`.gitignore:2`); only `.env.example` is tracked |
+| gitleaks v8.21.2, full history | 19 commits scanned, no leaks |
+| SaaS-OS pin | `cdede956dd884fc816b234f1b546ce3b983b4efc` in `backend/pyproject.toml` and `backend/uv.lock` |
+
+**GitHub:**
+
+- Pull request: [#1 "feat: Phase 2 identity and SaaS foundation"](https://github.com/aelboum/marocassist/pull/1)
+  (open, not merged).
+- First CI run: [run 44743126796](https://github.com/aelboum/marocassist/actions/runs/44743126796)
+  on head `18027d2`. Result: **success at the first attempt**, so no CI fix
+  was needed.
+
+| Job | Status on GitHub | Evidence (from the job log) |
+|---|---|---|
+| Backend | PASS | Ruff "All checks passed!"; `28 passed, 38 deselected` |
+| Integration | PASS | `38 passed, 28 deselected` against the PostgreSQL 16 and Redis 7 service containers |
+| Web | PASS | 17 tests passed, build ok, `found 0 vulnerabilities` |
+| Extension | PASS | 45 tests passed, build ok, `found 0 vulnerabilities` |
+| Security | PASS | pip-audit "No known vulnerabilities found"; gitleaks "19 commits scanned … no leaks found" |
+
+The one warning in the test logs is a `StarletteDeprecationWarning` from
+`fastapi.testclient` (a third-party deprecation, not a test failure). No test
+was removed or skipped, and no security control was weakened.
+
+The documentation commit for this round triggers a second CI run on the PR.
+Its result is reported in the hand-over to the owner, not in this file,
+because a commit cannot contain its own CI result.
+
+## 16. Findings register after approval
+
+The owner's IDs are used from now on. Nothing has been removed, and no
+finding is marked solved without evidence.
+
+| ID | Subject | Earlier ref | Status | Production blocker |
+|---|---|---|---|---|
+| P2-F1 | ZITADEL session survives MarocAssist sign-out | P2-F1 (§5) | **Open, Medium.** Upstream proposal U-4 written (`docs/saas-os-proposals/U-4-RP-INITIATED-LOGOUT.md`); not implemented | **Yes** |
+| P2-F2 | Protection against mass registration | P2-F2 (§5) | **Open** | **Yes** |
+| P2-F3 | ZITADEL asks for first and last name | open issue 3 (§9) | **Open** | No |
+| P2-F4 | Privacy notice not legally final | open issue 4 | **Open** | Yes, before public launch (legal) |
+| P2-F5 | FR/AR translations need review | open issue 5 | **Open** | No |
+| P2-F6 | Account deletion executed and tested end to end | open issue 7, criterion row "Account deletion" | **Open, NOT TESTED** | No |
+| P2-F7 | GitHub branch protection on `main` | open issue 9, P2-6 | **Open.** Owner action; CI is now green, so the five job names can be required | No |
+| R2-7 | No HSTS in web headers | §5 | **Open** (production TLS edge) | No |
+| R2-3, R2-8 | Export audit after the read; tenant ids in logs | §5 | **Accepted risk** | No |
+
+### Status per capability (status vocabulary)
+
+| Capability | Implemented | Tested locally | Tested on GitHub | Notes |
+|---|---|---|---|---|
+| Registration, email verification, sign-in, sign-out | Yes | Yes (E2E 20/20) | Partly: backend and integration tests on CI; E2E does not run on CI | P2-F1 open |
+| Personal tenant, RLS isolation, 401/403/404 | Yes | Yes | Yes (unit + integration jobs) | |
+| Onboarding, profile, consents, audit | Yes | Yes | Yes (integration) | |
+| Data export, deletion request | Yes | Yes | Yes (integration) | Operator deletion NOT TESTED (P2-F6) |
+| Nonce CSP | Yes | Yes (E2E) | Partly (web unit tests; the E2E header check is local only) | |
+| CI workflow | Yes | Yes | **Yes, run 44743126796** | |
+| RP-initiated logout (U-4) | **No** (proposal only) | Provider probe only | No | |
+
+## 17. Consulates and U-4
+
+- **Consulates.** The owner fixed four (Amsterdam, Rotterdam, Utrecht,
+  's-Hertogenbosch). `docs/product/CONSULATES.md` separates the name, physical
+  location, official address and jurisdiction.
+  - The Rijksoverheid list places the Rotterdam-region consulate at De Brauwweg
+    38-44, **Schiedam**.
+  - Opening hours and jurisdiction are not verified.
+  - Nothing is published in the product, and the product database is
+    unchanged.
+- **U-4.** The proposal recommends opt-in RP-initiated logout in SaaS-OS with
+  `client_id` and one registered `post_logout_redirect_uri`, with no stored ID
+  token and the `IdentityProvider` Protocol unchanged. A local probe showed that
+  ZITADEL's `end_session` ends the provider session (the next sign-in asks for a
+  password) and rejects unregistered redirect URIs with 400. Implementation
+  waits for an owner decision.
