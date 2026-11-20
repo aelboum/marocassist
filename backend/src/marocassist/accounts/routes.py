@@ -26,7 +26,14 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field
 from saas_os.api.context import RequestContext, RequestPrincipal
 from saas_os.api.dependencies import get_current_actor, get_current_session, require_permission
+from saas_os.api.errors import rate_limited, service_unavailable
 from saas_os.core.identity import Session
+from saas_os.infra.ratelimit import (
+    RateLimitBackendError,
+    RateLimitExceededError,
+    enforce_rate_limit,
+    get_ratelimit_config,
+)
 
 from marocassist.accounts.profile import (
     CONSENT_VERSIONS,
@@ -39,9 +46,7 @@ from marocassist.accounts.profile import (
     complete_onboarding,
     onboarding_status,
     read_consents,
-    read_deletion_request,
     read_profile,
-    request_deletion,
     set_consent,
     update_profile,
 )
@@ -55,7 +60,6 @@ from marocassist.accounts.workspace_settings import Locale, read_locale, write_l
 from marocassist.permissions import (
     ACCOUNT,
     CONSENT,
-    DELETE,
     ONBOARD,
     PROFILE,
     READ,
@@ -72,7 +76,6 @@ _update_profile = require_permission(PROFILE, UPDATE)
 _read_consents = require_permission(CONSENT, READ)
 _update_consents = require_permission(CONSENT, UPDATE)
 _onboard = require_permission(ACCOUNT, ONBOARD)
-_delete_account = require_permission(ACCOUNT, DELETE)
 
 
 class WorkspaceResponse(BaseModel):
@@ -135,11 +138,6 @@ class ConsentIn(BaseModel):
     version: str = Field(max_length=40)
 
 
-class DeletionRequestOut(BaseModel):
-    requested: bool
-    requested_at: datetime | None
-
-
 def _require_user(context: RequestContext) -> uuid.UUID:
     # Defence in depth: none of these routes opts in to API keys.
     if context.principal is not RequestPrincipal.USER:
@@ -166,9 +164,24 @@ def read_my_workspace(actor_id: uuid.UUID = Depends(get_current_actor)) -> Works
     return WorkspaceResponse(tenant_id=tenant_id)
 
 
+async def _limit_provisioning(actor_id: uuid.UUID = Depends(get_current_actor)) -> uuid.UUID:
+    """`require_permission`'s per-tenant limit cannot apply before a tenant
+    exists, so the workspace call is limited per user with SaaS-OS's own
+    limiter (fails closed when Redis is unavailable)."""
+    try:
+        await enforce_rate_limit(
+            f"marocassist.workspace-provisioning:{actor_id}", config=get_ratelimit_config()
+        )
+    except RateLimitExceededError as exc:
+        raise rate_limited(exc.retry_after_seconds) from None
+    except RateLimitBackendError:
+        raise service_unavailable(5) from None
+    return actor_id
+
+
 @router.post("/me/workspace", response_model=WorkspaceResponse)
 def provision_my_workspace(
-    actor_id: uuid.UUID = Depends(get_current_actor),
+    actor_id: uuid.UUID = Depends(_limit_provisioning),
     session: Session = Depends(get_current_session),
 ) -> WorkspaceResponse:
     if session.verified_email is None:
@@ -284,24 +297,3 @@ def put_consent(
     except NotOnboardedError as exc:
         raise _conflict("not_onboarded") from exc
     return [ConsentOut(**consent.__dict__) for consent in read_consents(context.tenant_id)]
-
-
-# --- Deletion request -----------------------------------------------------------------------
-
-
-@router.get("/tenants/{tenant_id}/account/deletion-request", response_model=DeletionRequestOut)
-def get_deletion_request(
-    context: RequestContext = Depends(_delete_account),
-) -> DeletionRequestOut:
-    requested_at = read_deletion_request(context.tenant_id)
-    return DeletionRequestOut(requested=requested_at is not None, requested_at=requested_at)
-
-
-@router.post("/tenants/{tenant_id}/account/deletion-request", response_model=DeletionRequestOut)
-def post_deletion_request(
-    response: Response, context: RequestContext = Depends(_delete_account)
-) -> DeletionRequestOut:
-    user_id = _require_user(context)
-    requested_at, created = request_deletion(user_id, context.tenant_id)
-    response.status_code = status.HTTP_202_ACCEPTED if created else status.HTTP_200_OK
-    return DeletionRequestOut(requested=True, requested_at=requested_at)

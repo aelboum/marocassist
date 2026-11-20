@@ -73,7 +73,7 @@ const messages = {
     exportButton: "Download mijn gegevens",
     deleteTitle: "Account verwijderen",
     deleteBody:
-      "We verwijderen je account en alle gegevens binnen 30 dagen. Je kunt tot dan nog inloggen. Dit kan niet ongedaan worden gemaakt.",
+      "We verwijderen je account en alle gegevens binnen 30 dagen. Gekoppelde apparaten worden direct ontkoppeld. Je kunt tot de verwijdering nog inloggen. Dit kan niet ongedaan worden gemaakt.",
     deleteConfirm: "Ja, verwijder mijn account",
     deleteRequested: "Je verzoek is ontvangen op",
     draftNotice: "Concept, nog niet juridisch getoetst.",
@@ -132,7 +132,7 @@ const messages = {
     exportButton: "Télécharger mes données",
     deleteTitle: "Supprimer le compte",
     deleteBody:
-      "Nous supprimons votre compte et toutes vos données dans un délai de 30 jours. Vous pouvez encore vous connecter d'ici là. Cette action est irréversible.",
+      "Nous supprimons votre compte et toutes vos données dans un délai de 30 jours. Les appareils associés sont dissociés immédiatement. Vous pouvez encore vous connecter d'ici là. Cette action est irréversible.",
     deleteConfirm: "Oui, supprimer mon compte",
     deleteRequested: "Votre demande a été reçue le",
     draftNotice: "Projet, pas encore validé juridiquement.",
@@ -187,7 +187,7 @@ const messages = {
     exportBody: "نزّل نسخة من كل ما يحتفظ به MarocAssist عن حسابك (JSON).",
     exportButton: "تنزيل بياناتي",
     deleteTitle: "حذف الحساب",
-    deleteBody: "نحذف حسابك وجميع بياناتك خلال 30 يومًا. يمكنك تسجيل الدخول حتى ذلك الحين. لا يمكن التراجع عن ذلك.",
+    deleteBody: "نحذف حسابك وجميع بياناتك خلال 30 يومًا. يتم إلغاء ربط الأجهزة المرتبطة فورًا. يمكنك تسجيل الدخول حتى ذلك الحين. لا يمكن التراجع عن ذلك.",
     deleteConfirm: "نعم، احذف حسابي",
     deleteRequested: "تم استلام طلبك في",
     draftNotice: "مسودة، لم تخضع بعد لمراجعة قانونية.",
@@ -243,7 +243,7 @@ const messages = {
     exportButton: "Download my data",
     deleteTitle: "Delete account",
     deleteBody:
-      "We delete your account and all your data within 30 days. You can still sign in until then. This cannot be undone.",
+      "We delete your account and all your data within 30 days. Paired devices are unpaired at once. You can still sign in until then. This cannot be undone.",
     deleteConfirm: "Yes, delete my account",
     deleteRequested: "Your request was received on",
     draftNotice: "Draft, not yet legally reviewed.",

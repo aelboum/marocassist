@@ -26,7 +26,8 @@ Pool safety (S-8): the advisory-lock connection stays open while the Core
 calls take a second pooled connection each. Many first logins at once
 could otherwise hold every pooled connection for a lock and wait forever
 for a second one. A per-process semaphore bounds concurrent provisionings
-well below the pool size; waiting for it is bounded too.
+well below the pool size; waiting for it is bounded too (5 s, so a
+burst cannot tie up the worker threads for long).
 """
 
 from __future__ import annotations
@@ -68,7 +69,7 @@ _TENANT_NAME_PREFIX = "personal-"
 # four connections. A request that waits longer than the timeout gets a
 # retryable 503 instead of hanging a worker thread.
 MAX_CONCURRENT_PROVISIONINGS = 2
-_PROVISIONING_WAIT_SECONDS = 30.0
+_PROVISIONING_WAIT_SECONDS = 5.0
 _provisioning_slots = threading.BoundedSemaphore(MAX_CONCURRENT_PROVISIONINGS)
 
 

@@ -858,7 +858,7 @@
         },
         "summary": "Get Deletion Request",
         "tags": [
-          "accounts"
+          "privacy"
         ]
       },
       "post": {
@@ -915,7 +915,7 @@
         },
         "summary": "Post Deletion Request",
         "tags": [
-          "accounts"
+          "privacy"
         ]
       }
     },

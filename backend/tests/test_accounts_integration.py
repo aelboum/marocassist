@@ -275,8 +275,13 @@ def test_required_consent_cannot_be_withdrawn_and_versions_must_be_current(
 # --- Deletion request and export ---------------------------------------------------------
 
 
-def test_deletion_request_is_recorded_once_and_audited(client: TestClient) -> None:
+def test_deletion_request_is_recorded_once_audited_and_unpairs_devices(
+    client: TestClient,
+) -> None:
     _user, tenant, headers = _onboarded_user(client)
+    pairing = client.post(f"/v1/tenants/{tenant}/copilot/devices", headers=headers).json()
+    key = {"X-API-Key": pairing["api_key"]}
+    assert client.get(f"/v1/tenants/{tenant}/copilot/session", headers=key).status_code == 200
     url = f"/v1/tenants/{tenant}/account/deletion-request"
     assert client.get(url, headers=headers).json() == {"requested": False, "requested_at": None}
     first = client.post(url, headers=headers)
@@ -284,6 +289,9 @@ def test_deletion_request_is_recorded_once_and_audited(client: TestClient) -> No
     assert (first.status_code, second.status_code) == (202, 200)
     assert first.json()["requested_at"] == second.json()["requested_at"]
     assert _actions(tenant).count("marocassist.account.deletion_request") == 1
+    # No device credential stays usable while the request waits.
+    assert client.get(f"/v1/tenants/{tenant}/copilot/session", headers=key).status_code == 401
+    assert client.get(f"/v1/tenants/{tenant}/copilot/devices", headers=headers).json() == []
 
 
 def test_export_contains_the_accounts_product_data_and_is_audited(client: TestClient) -> None:
@@ -435,3 +443,22 @@ def test_device_history_is_bounded(client: TestClient) -> None:
     refused = client.post(devices_url, headers=headers)
     assert refused.status_code == 409
     assert refused.json()["detail"] == "device_history_full"
+
+
+def test_workspace_provisioning_is_rate_limited_per_user(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Before a tenant exists `require_permission`'s per-tenant limit cannot
+    apply; the workspace call has its own per-user limit."""
+    import dataclasses
+
+    from marocassist.accounts import routes
+
+    tight = dataclasses.replace(routes.get_ratelimit_config(), requests_per_window=3)
+    monkeypatch.setattr(routes, "get_ratelimit_config", lambda: tight)
+    _user, headers = _new_user()
+    statuses = [client.post("/v1/me/workspace", headers=headers).status_code for _ in range(5)]
+    assert statuses[:3] == [200, 200, 200]
+    assert statuses[3:] == [429, 429]
+    _other, other_headers = _new_user()
+    assert client.post("/v1/me/workspace", headers=other_headers).status_code == 200
