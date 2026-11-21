@@ -56,6 +56,8 @@ ignore = [
 "tests/**/*.py" = ["S101", "S105", "S106", "PLC0415"]
 "src/marocassist/**/routes.py" = ["B008"]
 "src/marocassist/migrations/**/*.py" = ["S608"]
+# Fixture SQL built from constant table and column names, never from input.
+"tests/test_knowledge_integration.py" = ["S608"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -94,6 +96,7 @@ source_modules = [
     "marocassist.accounts",
     "marocassist.copilot",
     "marocassist.privacy",
+    "marocassist.knowledge",
     "marocassist.permissions",
     "marocassist.purge",
     "marocassist.worker",
@@ -104,4 +107,4 @@ forbidden_modules = ["sqlalchemy", "psycopg"]
 [[tool.importlinter.contracts]]
 name = "Feature modules are independent of each other"
 type = "independence"
-modules = ["marocassist.accounts", "marocassist.copilot"]
+modules = ["marocassist.accounts", "marocassist.copilot", "marocassist.knowledge"]

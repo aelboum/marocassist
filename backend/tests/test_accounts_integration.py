@@ -397,7 +397,10 @@ def test_purge_removes_every_product_row_of_the_tenant_only(client: TestClient) 
     )
     from marocassist.purge import ACCOUNTS_PURGE_PARTICIPANT
 
-    assert registered_purge_participant_names() == ("marocassist.accounts",)
+    assert registered_purge_participant_names() == (
+        "marocassist.accounts",
+        "marocassist.knowledge",
+    )
     _a, tenant_a, headers_a = _onboarded_user(client)
     _b, tenant_b, headers_b = _onboarded_user(client)
     for tenant, headers in ((tenant_a, headers_a), (tenant_b, headers_b)):
