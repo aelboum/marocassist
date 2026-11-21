@@ -10,6 +10,7 @@ is an error, never a silent default.
 from __future__ import annotations
 
 import os
+import uuid
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -50,6 +51,20 @@ def _int_setting(name: str, default: int, minimum: int, maximum: int) -> int:
     if not minimum <= value <= maximum:
         raise ConfigurationError(f"{name} must be between {minimum} and {maximum}")
     return value
+
+
+def editorial_tenant_id() -> uuid.UUID:
+    """The editorial tenant that receives the publishing audit rows
+    (decision P3-D10). Required by the knowledge loader only; the running
+    app never reads it."""
+    name = "MAROCASSIST_EDITORIAL_TENANT_ID"
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        raise ConfigurationError(f"{name} is required to publish knowledge")
+    try:
+        return uuid.UUID(raw)
+    except ValueError as exc:
+        raise ConfigurationError(f"{name} must be a UUID") from exc
 
 
 @lru_cache(maxsize=1)

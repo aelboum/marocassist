@@ -1,0 +1,25 @@
+{
+  "item_id": "fixture.old-passport-procedure",
+  "kind": "procedure",
+  "rights_class": "R1",
+  "country_scope": ["NL"],
+  "topic_keys": ["passport"],
+  "status": "withdrawn",
+  "version": 3,
+  "review_due_at": "2027-04-30",
+  "superseded_by": "fixture.passport-renewal",
+  "citations": [{"source_id": "src-fixture-consulat-passport"}],
+  "texts": {
+    "nl": {
+      "title": "Oude procedure voor het paspoort",
+      "body": "Deze procedure is vervangen.",
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "format": 1,
+  "editors": [
+    {"handle": "ed-fixture-author", "roles": ["author"]},
+    {"handle": "ed-fixture-reviewer", "roles": ["author", "reviewer"]}
+  ]
+}

@@ -1,0 +1,19 @@
+[
+  {
+    "fact_id": "fixture.fee.passport.adult",
+    "fact_key": "fee.passport_renewal.adult",
+    "scope": "global",
+    "value": 300,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [{"source_id": "src-fixture-consulat-passport", "locator": "Tarifs"}],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  }
+]

@@ -58,6 +58,7 @@ ignore = [
 "src/marocassist/migrations/**/*.py" = ["S608"]
 # Fixture SQL built from constant table and column names, never from input.
 "tests/test_knowledge_integration.py" = ["S608"]
+"tests/test_knowledge_loader_integration.py" = ["S608"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -103,6 +104,33 @@ source_modules = [
     "marocassist.jobs",
 ]
 forbidden_modules = ["sqlalchemy", "psycopg"]
+# The publishing loader runs at deploy time under the migrations role and
+# writes text-array and JSONB columns that SaaS-OS's ORM primitives do not
+# cover. It is kept out of the running app by the next contract.
+ignore_imports = ["marocassist.knowledge.loader -> sqlalchemy"]
+
+[[tool.importlinter.contracts]]
+name = "The knowledge loader is never imported by the running app"
+type = "forbidden"
+source_modules = [
+    "marocassist.app",
+    "marocassist.api",
+    "marocassist.worker",
+    "marocassist.jobs",
+    "marocassist.purge",
+    "marocassist.privacy",
+    "marocassist.accounts",
+    "marocassist.copilot",
+    "marocassist.knowledge.models",
+    "marocassist.knowledge.reports",
+    "marocassist.knowledge.content",
+    "marocassist.knowledge.validate",
+    "marocassist.knowledge.domains",
+    "marocassist.knowledge.sanitise",
+    "marocassist.knowledge.pii",
+    "marocassist.knowledge.chunking",
+]
+forbidden_modules = ["marocassist.knowledge.loader"]
 
 [[tool.importlinter.contracts]]
 name = "Feature modules are independent of each other"

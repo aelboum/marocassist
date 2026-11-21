@@ -1,0 +1,12 @@
+{
+  "review": {
+    "author": "ed-fixture-author",
+    "approver": "ed-fixture-reviewer",
+    "approved_at": "2026-11-02"
+  },
+  "terms": [
+    {"term": "paspoort", "lang": "nl", "canonical_key": "passport", "kind": "synonym"},
+    {"term": "جوازات", "lang": "ar", "canonical_key": "passport", "kind": "plural"},
+    {"term": "kafala", "lang": "ary", "canonical_key": "kafala", "kind": "transliteration"}
+  ]
+}

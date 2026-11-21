@@ -1,0 +1,986 @@
+{
+  "$defs": {
+    "Citation": {
+      "additionalProperties": false,
+      "properties": {
+        "locator": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Locator"
+        },
+        "source_id": {
+          "pattern": "^src-[a-z0-9-]{2,76}$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id"
+      ],
+      "title": "Citation",
+      "type": "object"
+    },
+    "Consulate": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "attributes": {
+          "items": {
+            "$ref": "#/$defs/ConsulateAttribute"
+          },
+          "maxItems": 50,
+          "title": "Attributes",
+          "type": "array"
+        },
+        "code": {
+          "pattern": "^[a-z0-9-]{2,32}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "country": {
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "jurisdictions": {
+          "items": {
+            "$ref": "#/$defs/Jurisdiction"
+          },
+          "maxItems": 500,
+          "title": "Jurisdictions",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "consulate_general",
+            "consulate",
+            "embassy"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "country",
+        "kind",
+        "active"
+      ],
+      "title": "Consulate",
+      "type": "object"
+    },
+    "ConsulateAttribute": {
+      "additionalProperties": false,
+      "properties": {
+        "attribute": {
+          "enum": [
+            "display_name",
+            "physical_city",
+            "address",
+            "contact",
+            "opening_hours"
+          ],
+          "title": "Attribute",
+          "type": "string"
+        },
+        "lang": {
+          "anyOf": [
+            {
+              "enum": [
+                "nl",
+                "fr",
+                "ar",
+                "en"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lang"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "review_due_at": {
+          "format": "date",
+          "title": "Review Due At",
+          "type": "string"
+        },
+        "review_override_reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Override Reason"
+        },
+        "source_id": {
+          "pattern": "^src-[a-z0-9-]{2,76}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending_review",
+            "verified",
+            "withdrawn"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "verified_at": {
+          "format": "date",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attribute",
+        "value",
+        "source_id",
+        "verified_at",
+        "review_due_at",
+        "status",
+        "review"
+      ],
+      "title": "ConsulateAttribute",
+      "type": "object"
+    },
+    "Editor": {
+      "additionalProperties": false,
+      "properties": {
+        "handle": {
+          "pattern": "^ed-[a-z0-9-]{2,30}$",
+          "title": "Handle",
+          "type": "string"
+        },
+        "roles": {
+          "items": {
+            "enum": [
+              "author",
+              "reviewer"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "handle",
+        "roles"
+      ],
+      "title": "Editor",
+      "type": "object"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "properties": {
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/Citation"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Citations",
+          "type": "array"
+        },
+        "fact_id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,119}$",
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "fact_key": {
+          "maxLength": 120,
+          "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+          "title": "Fact Key",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "review_due_at": {
+          "format": "date",
+          "title": "Review Due At",
+          "type": "string"
+        },
+        "review_override_reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Override Reason"
+        },
+        "scope": {
+          "pattern": "^(global|country:[A-Z]{2}|consulate:[a-z0-9-]{2,32}|region:[a-z0-9-]{2,32})$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "published",
+            "under_review",
+            "withdrawn"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z]{1,16}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "valid_from": {
+          "format": "date",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "value": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "verified_at": {
+          "format": "date",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "fact_key",
+        "scope",
+        "value",
+        "valid_from",
+        "status",
+        "verified_at",
+        "review_due_at",
+        "citations",
+        "review"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "Item": {
+      "additionalProperties": false,
+      "properties": {
+        "citations": {
+          "items": {
+            "$ref": "#/$defs/Citation"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "title": "Citations",
+          "type": "array"
+        },
+        "consulate_scope": {
+          "items": {
+            "pattern": "^[a-z0-9-]{2,32}$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Consulate Scope",
+          "type": "array"
+        },
+        "country_scope": {
+          "items": {
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Country Scope",
+          "type": "array"
+        },
+        "item_id": {
+          "pattern": "^[a-z0-9][a-z0-9.-]{1,79}$",
+          "title": "Item Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "procedure",
+            "explanation",
+            "faq"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "review_due_at": {
+          "format": "date",
+          "title": "Review Due At",
+          "type": "string"
+        },
+        "review_override_reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Override Reason"
+        },
+        "rights_class": {
+          "enum": [
+            "R1",
+            "R2",
+            "R3",
+            "R4",
+            "R5",
+            "R6"
+          ],
+          "title": "Rights Class",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "published",
+            "withdrawn"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "superseded_by": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9.-]{1,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Superseded By"
+        },
+        "texts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ItemText"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": [
+              "nl",
+              "fr",
+              "ar",
+              "en"
+            ]
+          },
+          "title": "Texts",
+          "type": "object"
+        },
+        "topic_keys": {
+          "items": {
+            "pattern": "^[a-z0-9_]{2,40}$",
+            "type": "string"
+          },
+          "maxItems": 10,
+          "title": "Topic Keys",
+          "type": "array"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "item_id",
+        "kind",
+        "rights_class",
+        "country_scope",
+        "status",
+        "version",
+        "review_due_at",
+        "citations",
+        "texts"
+      ],
+      "title": "Item",
+      "type": "object"
+    },
+    "ItemText": {
+      "additionalProperties": false,
+      "properties": {
+        "ai_assisted": {
+          "default": false,
+          "title": "Ai Assisted",
+          "type": "boolean"
+        },
+        "body": {
+          "maxLength": 20000,
+          "title": "Body",
+          "type": "string"
+        },
+        "keywords": {
+          "items": {
+            "maxLength": 60,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Keywords",
+          "type": "array"
+        },
+        "lang_status": {
+          "enum": [
+            "published",
+            "pending_review"
+          ],
+          "title": "Lang Status",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "title": {
+          "maxLength": 200,
+          "title": "Title",
+          "type": "string"
+        },
+        "verified_at": {
+          "format": "date",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "body",
+        "lang_status",
+        "verified_at",
+        "review"
+      ],
+      "title": "ItemText",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Jurisdiction": {
+      "additionalProperties": false,
+      "properties": {
+        "municipality_code": {
+          "pattern": "^GM[0-9]{4}$",
+          "title": "Municipality Code",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "source_id": {
+          "pattern": "^src-[a-z0-9-]{2,76}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending_review",
+            "verified",
+            "withdrawn"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "verified_at": {
+          "format": "date",
+          "title": "Verified At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "municipality_code",
+        "source_id",
+        "verified_at",
+        "status",
+        "review"
+      ],
+      "title": "Jurisdiction",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "editors": {
+          "items": {
+            "$ref": "#/$defs/Editor"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Editors",
+          "type": "array"
+        },
+        "format": {
+          "const": 1,
+          "title": "Format",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "format",
+        "editors"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "description": "Four-eyes record (rights document 5.1, gate 5). Checked in\n`validate.py`: the approver must be a registered reviewer and not the\nauthor.",
+      "properties": {
+        "approved_at": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approved At"
+        },
+        "approver": {
+          "anyOf": [
+            {
+              "pattern": "^ed-[a-z0-9-]{2,30}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Approver"
+        },
+        "author": {
+          "pattern": "^ed-[a-z0-9-]{2,30}$",
+          "title": "Author",
+          "type": "string"
+        }
+      },
+      "required": [
+        "author"
+      ],
+      "title": "Review",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_use": {
+          "items": {
+            "enum": [
+              "link",
+              "cite_fact",
+              "summary",
+              "short_quote",
+              "verbatim",
+              "redistribute_document"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allowed Use",
+          "type": "array"
+        },
+        "consulate_codes": {
+          "items": {
+            "pattern": "^[a-z0-9-]{2,32}$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Consulate Codes",
+          "type": "array"
+        },
+        "consulted_at": {
+          "format": "date",
+          "title": "Consulted At",
+          "type": "string"
+        },
+        "content_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Hash"
+        },
+        "country": {
+          "pattern": "^[A-Z]{2}$",
+          "title": "Country",
+          "type": "string"
+        },
+        "geo_scope": {
+          "pattern": "^(global|country:[A-Z]{2}|consulate:[a-z0-9-]{2,32}|region:[a-z0-9-]{2,32})$",
+          "title": "Geo Scope",
+          "type": "string"
+        },
+        "language": {
+          "enum": [
+            "nl",
+            "fr",
+            "ar",
+            "en"
+          ],
+          "title": "Language",
+          "type": "string"
+        },
+        "licence": {
+          "pattern": "^(unknown|all_rights_reserved|open_licence:[A-Za-z0-9.-]{1,80}|written_permission:[A-Za-z0-9._/-]{1,80})$",
+          "title": "Licence",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "official_url": {
+          "maxLength": 2000,
+          "pattern": "^https://[A-Za-z0-9.-]+(/[^\\s]*)?$",
+          "title": "Official Url",
+          "type": "string"
+        },
+        "owner_reviewer": {
+          "anyOf": [
+            {
+              "pattern": "^ed-[a-z0-9-]{2,30}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Reviewer"
+        },
+        "publisher": {
+          "maxLength": 200,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "publisher_key": {
+          "pattern": "^[a-z0-9-]{2,40}$",
+          "title": "Publisher Key",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "review_due_at": {
+          "format": "date",
+          "title": "Review Due At",
+          "type": "string"
+        },
+        "review_override_reason": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Override Reason"
+        },
+        "rights_evidence_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9._/:-]{1,200}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rights Evidence Ref"
+        },
+        "source_id": {
+          "pattern": "^src-[a-z0-9-]{2,76}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_type": {
+          "enum": [
+            "official",
+            "government",
+            "consulate",
+            "secondary",
+            "internal"
+          ],
+          "title": "Source Type",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "pending_review",
+            "verified",
+            "expired",
+            "withdrawn"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 300,
+          "title": "Title",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Verified At"
+        }
+      },
+      "required": [
+        "source_id",
+        "title",
+        "official_url",
+        "publisher",
+        "publisher_key",
+        "source_type",
+        "country",
+        "geo_scope",
+        "language",
+        "consulted_at",
+        "review_due_at",
+        "licence",
+        "allowed_use",
+        "status",
+        "review"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Term": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_key": {
+          "maxLength": 120,
+          "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)*$",
+          "title": "Canonical Key",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "synonym",
+            "transliteration",
+            "plural",
+            "alias",
+            "abbreviation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "lang": {
+          "enum": [
+            "nl",
+            "fr",
+            "ar",
+            "en",
+            "ary"
+          ],
+          "title": "Lang",
+          "type": "string"
+        },
+        "term": {
+          "maxLength": 120,
+          "title": "Term",
+          "type": "string"
+        }
+      },
+      "required": [
+        "term",
+        "lang",
+        "canonical_key",
+        "kind"
+      ],
+      "title": "Term",
+      "type": "object"
+    },
+    "TermList": {
+      "additionalProperties": false,
+      "properties": {
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "terms": {
+          "items": {
+            "$ref": "#/$defs/Term"
+          },
+          "maxItems": 5000,
+          "title": "Terms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "review"
+      ],
+      "title": "TermList",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "consulates": {
+      "items": {
+        "$ref": "#/$defs/Consulate"
+      },
+      "title": "Consulates",
+      "type": "array"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/Fact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/Item"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/Source"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "terms": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TermList"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "manifest"
+  ],
+  "title": "Bundle",
+  "type": "object"
+}

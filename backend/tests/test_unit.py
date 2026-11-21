@@ -62,11 +62,17 @@ def test_no_module_imports_the_saas_os_control_plane() -> None:
     assert offenders == []
 
 
+# The publishing loader runs at deploy time under the migrations role; it is
+# kept out of the running app by an import-linter contract (pyproject.toml).
+SQLALCHEMY_EXCEPTIONS = frozenset({("knowledge", "loader.py")})
+
+
 def test_only_migrations_import_sqlalchemy_or_psycopg() -> None:
     offenders = [
         str(p.relative_to(SRC))
         for p in SRC.rglob("*.py")
         if "migrations" not in p.parts
+        and p.relative_to(SRC).parts not in SQLALCHEMY_EXCEPTIONS
         and any(n.split(".")[0] in {"sqlalchemy", "psycopg"} for n in _imports(p))
     ]
     assert offenders == []
