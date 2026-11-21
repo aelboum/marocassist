@@ -68,15 +68,20 @@ GLOBAL_TABLES: tuple[str, ...] = (
 TENANT_TABLES: tuple[str, ...] = ("knowledge_reports",)
 
 # Hard caps enforced inside knowledge_search() (security review T-6).
-MAX_QUERY_CHARS = 256
+# The query is the user's text (capped at 256 characters by
+# knowledge.normalise) plus its term expansions.
+MAX_QUERY_CHARS = 1024
 MAX_RESULTS = 6
 MAX_CHUNKS_PER_ITEM = 2
+MAX_EXPANSION_WORDS = 12
+MAX_EXPANSIONS = 64
 
 _LANGS = ("nl", "fr", "ar", "en")
 _SCOPE_RE = r"^(global|country:[A-Z]{2}|consulate:[a-z0-9-]{2,32}|region:[a-z0-9-]{2,32})$"
 _ID_RE = r"^[a-z0-9][a-z0-9.-]{1,79}$"
 _CONSULATE_RE = r"^[a-z0-9-]{2,32}$"
 _SEARCH_SIGNATURE = "text, text[], text, text, text[], integer"
+_EXPAND_SIGNATURE = "text[], text[]"
 
 
 def arabic_translate_args() -> tuple[str, str]:
@@ -171,6 +176,11 @@ def _functions() -> list[str]:
 
 
 def _search_function() -> str:
+    """Chunks match on their own heading and body, or through their item's
+    title and keywords (`knowledge_item_texts.match_text`), so a query that
+    only names the item still finds it. `source_rank` is the best rank of the
+    item's cited sources: 1 official or consulate, 2 government, 3 anything
+    else or uncited."""
     s = _SCHEMA
     return f"""
     CREATE FUNCTION {s}.knowledge_search(
@@ -189,6 +199,7 @@ def _search_function() -> str:
         kind text,
         status text,
         review_due_at date,
+        source_rank integer,
         rank real
     )
     LANGUAGE sql STABLE PARALLEL SAFE
@@ -197,17 +208,17 @@ def _search_function() -> str:
         WITH q AS (
             SELECT {s}.kn_normalise(pg_catalog.left(p_query, {MAX_QUERY_CHARS})) AS text
         ),
-        hits AS (
+        candidates AS (
             SELECT
                 c.item_id, c.lang, c.ordinal, c.heading, i.kind,
                 CASE WHEN i.status = 'published' AND i.review_due_at < CURRENT_DATE
                      THEN 'expired' ELSE i.status END AS status,
                 i.review_due_at,
-                (pg_catalog.ts_rank_cd(c.tsv,
-                     pg_catalog.websearch_to_tsquery({s}.kn_config(c.lang), q.text))
-                 + 0.5 * pg_catalog.ts_rank_cd(c.tsv_simple,
-                     pg_catalog.websearch_to_tsquery('pg_catalog.simple', q.text)))::real
-                    AS raw_rank
+                c.tsv, c.tsv_simple,
+                pg_catalog.to_tsvector({s}.kn_config(c.lang), t.match_text) AS title_tsv,
+                pg_catalog.to_tsvector('pg_catalog.simple', t.match_text) AS title_simple,
+                pg_catalog.websearch_to_tsquery({s}.kn_config(c.lang), q.text) AS tq,
+                pg_catalog.websearch_to_tsquery('pg_catalog.simple', q.text) AS sq
             FROM {s}.knowledge_chunks c
             JOIN {s}.knowledge_item_texts t ON t.item_id = c.item_id AND t.lang = c.lang
             JOIN {s}.knowledge_items i ON i.item_id = c.item_id
@@ -221,26 +232,80 @@ def _search_function() -> str:
                    OR pg_catalog.cardinality(i.consulate_scope) = 0
                    OR p_consulate = ANY (i.consulate_scope))
               AND (p_kinds IS NULL OR i.kind = ANY (p_kinds))
-              AND (c.tsv @@ pg_catalog.websearch_to_tsquery({s}.kn_config(c.lang), q.text)
-                   OR c.tsv_simple @@ pg_catalog.websearch_to_tsquery('pg_catalog.simple',
-                                                                      q.text))
         ),
-        weighted AS (
+        hits AS (
+            SELECT x.item_id, x.lang, x.ordinal, x.heading, x.kind, x.status,
+                   x.review_due_at,
+                   (pg_catalog.ts_rank_cd(x.tsv, x.tq)
+                    + 0.5 * pg_catalog.ts_rank_cd(x.tsv_simple, x.sq))::real AS chunk_rank,
+                   (pg_catalog.ts_rank_cd(x.title_tsv, x.tq)
+                    + 0.5 * pg_catalog.ts_rank_cd(x.title_simple, x.sq))::real AS title_rank
+            FROM candidates x
+            WHERE x.tsv @@ x.tq OR x.tsv_simple @@ x.sq
+               OR x.title_tsv @@ x.tq OR x.title_simple @@ x.sq
+        ),
+        ranked AS (
             SELECT h.*,
-                   (h.raw_rank * CASE WHEN h.status = 'published' THEN 1.0 ELSE 0.5 END)::real
+                   coalesce((
+                       SELECT pg_catalog.min(CASE
+                           WHEN src.source_type IN ('official', 'consulate') THEN 1
+                           WHEN src.source_type = 'government' THEN 2
+                           ELSE 3 END)
+                       FROM {s}.knowledge_citations ci
+                       JOIN {s}.knowledge_sources src ON src.source_id = ci.source_id
+                       WHERE ci.item_id = h.item_id
+                   ), 3) AS source_rank,
+                   ((h.chunk_rank + h.title_rank)
+                    * CASE WHEN h.status = 'published' THEN 1.0 ELSE 0.5 END)::real
                        AS weighted_rank,
                    pg_catalog.row_number() OVER (
                        PARTITION BY h.item_id
-                       ORDER BY h.raw_rank DESC, h.lang, h.ordinal) AS per_item
+                       ORDER BY h.chunk_rank DESC, h.lang, h.ordinal) AS per_item
             FROM hits h
         )
-        SELECT w.item_id, w.lang, w.ordinal, w.heading, w.kind, w.status,
-               w.review_due_at, w.weighted_rank
-        FROM weighted w
-        WHERE w.per_item <= {MAX_CHUNKS_PER_ITEM}
-        ORDER BY w.weighted_rank DESC, w.item_id, w.lang, w.ordinal
-        LIMIT least(greatest(coalesce(p_limit, 1), 1),
-                               {MAX_RESULTS})
+        SELECT r.item_id, r.lang, r.ordinal, r.heading, r.kind, r.status,
+               r.review_due_at, r.source_rank, r.weighted_rank
+        FROM ranked r
+        WHERE r.per_item <= {MAX_CHUNKS_PER_ITEM}
+        ORDER BY r.weighted_rank DESC, r.item_id, r.lang, r.ordinal
+        LIMIT least(greatest(coalesce(p_limit, 1), 1), {MAX_RESULTS})
+    $fn$
+    """
+
+
+def _expand_terms_function() -> str:
+    """Term expansion (search architecture section 4): for each query word,
+    the other terms sharing a `canonical_key` with a term that matches the
+    word exactly, or by trigram similarity of at least 0.4 for words of four
+    or more characters. Only terms in the query languages or Darija (`ary`)
+    are returned. Input and output are capped like the search itself."""
+    s = _SCHEMA
+    return f"""
+    CREATE FUNCTION {s}.knowledge_expand_terms(p_words text[], p_langs text[])
+    RETURNS TABLE (word text, term text)
+    LANGUAGE sql STABLE PARALLEL SAFE
+    SET search_path = pg_catalog
+    AS $fn$
+        WITH w AS (
+            SELECT DISTINCT x AS word, {s}.kn_normalise(x) AS norm
+            FROM pg_catalog.unnest(p_words[1:{MAX_EXPANSION_WORDS}]) AS x
+            WHERE pg_catalog.length(x) BETWEEN 2 AND 60
+        ),
+        seeds AS (
+            SELECT DISTINCT w.word, w.norm, t.canonical_key
+            FROM w
+            JOIN {s}.knowledge_terms t
+              ON t.normalised = w.norm
+              OR (pg_catalog.length(w.norm) >= 4
+                  AND public.similarity(t.normalised, w.norm) >= 0.4)
+        )
+        SELECT DISTINCT e.word, t.normalised
+        FROM seeds e
+        JOIN {s}.knowledge_terms t ON t.canonical_key = e.canonical_key
+        WHERE (t.lang = ANY (p_langs) OR t.lang = 'ary')
+          AND t.normalised <> e.norm
+        ORDER BY e.word, t.normalised
+        LIMIT {MAX_EXPANSIONS}
     $fn$
     """
 
@@ -676,21 +741,26 @@ def upgrade() -> None:
     _create_search_indexes()
     _create_tenant_tables()
     op.execute(_search_function())
+    op.execute(_expand_terms_function())
 
     # T-1: SELECT only on global knowledge, for the application role.
     for table in GLOBAL_TABLES:
         op.execute(f'GRANT SELECT ON {_SCHEMA}.{table} TO "{app_role}"')
     # Reports: created and purged, never edited.
     op.execute(f'GRANT SELECT, INSERT, DELETE ON {_SCHEMA}.knowledge_reports TO "{app_role}"')
-    function = f"{_SCHEMA}.knowledge_search({_SEARCH_SIGNATURE})"
-    op.execute(f"REVOKE ALL ON FUNCTION {function} FROM PUBLIC")
-    op.execute(f'GRANT EXECUTE ON FUNCTION {function} TO "{app_role}"')
+    for function in (
+        f"{_SCHEMA}.knowledge_search({_SEARCH_SIGNATURE})",
+        f"{_SCHEMA}.knowledge_expand_terms({_EXPAND_SIGNATURE})",
+    ):
+        op.execute(f"REVOKE ALL ON FUNCTION {function} FROM PUBLIC")
+        op.execute(f'GRANT EXECUTE ON FUNCTION {function} TO "{app_role}"')
 
 
 def downgrade() -> None:
     app_role = _app_role()
     s = _SCHEMA
     op.execute(f"DROP FUNCTION IF EXISTS {s}.knowledge_search({_SEARCH_SIGNATURE})")
+    op.execute(f"DROP FUNCTION IF EXISTS {s}.knowledge_expand_terms({_EXPAND_SIGNATURE})")
     for table in (*TENANT_TABLES, *reversed(GLOBAL_TABLES)):
         op.execute(f'REVOKE ALL ON {s}.{table} FROM "{app_role}"')
         op.drop_table(table, schema=s)

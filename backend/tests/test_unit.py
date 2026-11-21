@@ -64,7 +64,7 @@ def test_no_module_imports_the_saas_os_control_plane() -> None:
 
 # The publishing loader runs at deploy time under the migrations role; it is
 # kept out of the running app by an import-linter contract (pyproject.toml).
-SQLALCHEMY_EXCEPTIONS = frozenset({("knowledge", "loader.py")})
+SQLALCHEMY_EXCEPTIONS = frozenset({("knowledge", "loader.py"), ("knowledge", "fts.py")})
 
 
 def test_only_migrations_import_sqlalchemy_or_psycopg() -> None:
@@ -76,6 +76,39 @@ def test_only_migrations_import_sqlalchemy_or_psycopg() -> None:
         and any(n.split(".")[0] in {"sqlalchemy", "psycopg"} for n in _imports(p))
     ]
     assert offenders == []
+
+
+def test_fts_uses_only_sqlalchemy_func() -> None:
+    """The one runtime SQLAlchemy exception (ADR-0007) may only call the two
+    search SQL functions through `sqlalchemy.func`: no other name, no plain
+    import."""
+    tree = ast.parse((SRC / "knowledge" / "fts.py").read_text(encoding="utf-8"))
+    imported: list[tuple[str, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(
+                (alias.name, "*") for alias in node.names if alias.name.startswith("sqlalchemy")
+            )
+        elif isinstance(node, ast.ImportFrom) and (node.module or "").startswith("sqlalchemy"):
+            imported.extend((node.module or "", alias.name) for alias in node.names)
+    assert imported == [("sqlalchemy", "func")]
+    direct = {
+        node.attr
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "func"
+    }
+    chained = {
+        node.attr
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Attribute)
+        and isinstance(node.value.value, ast.Name)
+        and node.value.value.id == "func"
+    }
+    assert direct == {"marocassist"}
+    assert chained == {"knowledge_search", "knowledge_expand_terms"}
 
 
 def test_no_raw_sql_helpers_in_product_code() -> None:

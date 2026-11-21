@@ -59,6 +59,7 @@ ignore = [
 # Fixture SQL built from constant table and column names, never from input.
 "tests/test_knowledge_integration.py" = ["S608"]
 "tests/test_knowledge_loader_integration.py" = ["S608"]
+"tests/test_knowledge_search_integration.py" = ["S608"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -107,7 +108,13 @@ forbidden_modules = ["sqlalchemy", "psycopg"]
 # The publishing loader runs at deploy time under the migrations role and
 # writes text-array and JSONB columns that SaaS-OS's ORM primitives do not
 # cover. It is kept out of the running app by the next contract.
-ignore_imports = ["marocassist.knowledge.loader -> sqlalchemy"]
+# knowledge.fts is the one runtime exception (ADR-0007): it calls the two
+# search SQL functions through `sqlalchemy.func` only (AST test in
+# tests/test_unit.py).
+ignore_imports = [
+    "marocassist.knowledge.loader -> sqlalchemy",
+    "marocassist.knowledge.fts -> sqlalchemy",
+]
 
 [[tool.importlinter.contracts]]
 name = "The knowledge loader is never imported by the running app"
@@ -129,6 +136,9 @@ source_modules = [
     "marocassist.knowledge.sanitise",
     "marocassist.knowledge.pii",
     "marocassist.knowledge.chunking",
+    "marocassist.knowledge.normalise",
+    "marocassist.knowledge.fts",
+    "marocassist.knowledge.retrieval",
 ]
 forbidden_modules = ["marocassist.knowledge.loader"]
 
