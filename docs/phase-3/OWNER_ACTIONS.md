@@ -7,7 +7,8 @@ blocks coding; all of them block **real** knowledge content. Status as of
 ## 1. Branch protection on `main` (P2-F7)
 
 The four-eyes rule in the loader checks editor handles in
-`knowledge/manifest.json`, which anyone can write. It only means something
+`knowledge/manifest.json`, which anyone can write (security review
+finding P3-R4). It only means something
 when every change to `main` goes through a reviewed pull request.
 
 GitHub, repository **Settings, Branches, Add branch ruleset** (or classic

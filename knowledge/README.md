@@ -12,6 +12,11 @@ only own explanations (R1), cited facts (R2) and own-words summaries (R3) are
 allowed, and the loader refuses anything else. Official sites reserve
 reproduction rights: never copy their text.
 
+How to write, review and publish content, step by step:
+[`docs/runbooks/KNOWLEDGE_EDITING.md`](../docs/runbooks/KNOWLEDGE_EDITING.md).
+The rights policy, with what the loader enforces, is
+[`docs/phase-3/CONTENT_RIGHTS_AND_PROVENANCE.md`](../docs/phase-3/CONTENT_RIGHTS_AND_PROVENANCE.md).
+
 ## Format
 
 The directory is a content bundle, checked against `content.schema.json`

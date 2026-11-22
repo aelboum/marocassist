@@ -30,7 +30,7 @@ reporting in the platform, where they are already tested.
 
 | Missing | MarocAssist response |
 |---|---|
-| Streaming | Non-streaming UX: typing indicator, short answers (`max_output_tokens` 400–800), staged answers ("short answer" first, "details" on request) |
+| Streaming | `stream_inference` is in the pinned public API but always raises `InferenceUnsupportedCapabilityError`, so streaming is effectively unavailable (correction C-4). Non-streaming UX: typing indicator, short answers (`max_output_tokens` 400–800), staged answers ("short answer" first, "details" on request) |
 | Tools / function calling | Orchestration is deterministic Python in `marocassist.assistant`; the model never decides to call anything |
 | JSON / structured output | Where structure is needed (e.g. highlight refs, citations), ask for a constrained plain-text format and parse strictly; reject on mismatch |
 | Vision | Deferred (§9) |

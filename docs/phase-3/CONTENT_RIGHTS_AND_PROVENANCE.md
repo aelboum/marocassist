@@ -1,7 +1,14 @@
-# Content rights and provenance (Phase 3 design proposal)
+# Content rights and provenance policy
 
-Status: design approved by the owner (2026-11-20) under the conditions in the
-[architecture report](PHASE3_ARCHITECTURE_REPORT.md) §12–13; not implemented.
+Status: approved by the owner on 2026-11-20 under the conditions in the
+[architecture report](PHASE3_ARCHITECTURE_REPORT.md) §12–13. This is the
+**content rights policy** for MarocAssist knowledge.
+
+- It was implemented in Phase 3 (branch `phase-3`).
+- The publishing loader enforces every rule that can be checked by machine;
+  see §11. Editors follow the [editor runbook](../runbooks/KNOWLEDGE_EDITING.md).
+- Until the conditions in §10 and the architecture report §12 are met, only
+  fixture content exists.
 Related documents: [ADR-0007](../adr/0007-knowledge-search.md),
 [search architecture](KNOWLEDGE_SEARCH_ARCHITECTURE.md),
 [security review](PHASE3_SECURITY_REVIEW.md),
@@ -259,3 +266,52 @@ New:
 - **Q-K6:** whether Moroccan law 09-08 applies to MarocAssist's processing,
   given an EU controller and data subjects who are Moroccan nationals
   (Phase 0 R-13).
+
+## 11. How the policy is enforced
+
+### 11.1 What the loader checks
+
+The loader (`marocassist.knowledge.loader`) checks every bundle in
+`knowledge/`. CI runs it as a dry run on every pull request, and the deploy
+runs it again before publishing. One problem refuses the **whole** bundle,
+and nothing is published. The codes below are the ones the loader prints.
+
+| Policy rule | Check | Code |
+|---|---|---|
+| Only R1–R3 until the legal answers (§10, P3-D12) | Item rights class | `rights_class_not_allowed` |
+| A rights class needs the matching use from every cited source: R1 `link`; R2 `link` + `cite_fact`; R3 `link` + `summary`; R4 `short_quote`; R5 `redistribute_document` (§3) | Citation versus `allowed_use` | `rights_not_permitted` |
+| Reachable is not reusable (§1.2): `short_quote`, `verbatim` and `redistribute_document` need a written permission or an open licence | Source `allowed_use` versus `licence` | `allowed_use_exceeds_licence` |
+| A licence other than `unknown` needs evidence. R4–R6 need evidence on every source; R5 and R6 need written permission. | `rights_evidence_ref`, `licence` | `rights_evidence` |
+| Every source can at least be linked | `allowed_use` | `link_required` |
+| Official and government types only for allow-listed domains (T-8, T-11) | `official_url` against `domains.py` | `domain_not_allowed` |
+| Facts only from verified, primary sources (§2.1) | Source status and type | `source_not_verified`, `source_not_ready`, `no_primary_source` |
+| Every fact is traceable (§1.3) | Citation with locator; registered source | `locator_required`, `unknown_source` |
+| Four-eyes (§5.1) | Approver is a registered reviewer and is not the author; approval date between verification and today | `four_eyes_missing`, `four_eyes_same`, `not_a_reviewer`, `unknown_editor`, `approval_date`, `no_reviewer` |
+| AI drafts go through the same gate (§6.1) | `ai_assisted` texts need an approver | `four_eyes_missing` |
+| Review periods (§5.2, P3-D6) | `review_due_at` within the period after verification and not after `valid_until`; an override needs a reason | `review_period`, `review_after_validity` |
+| No personal data (§9) | E-mail, phone, BSN, CNIE or passport number and IBAN outside consulate contact fields | `personal_data` |
+| Untrusted content (§8) | Sanitiser: bidi and invisible characters, markup, URLs in text, homoglyph words, prompt delimiters, injection phrases | `unsafe_text`, `not_normalised` |
+| Consulate rules (P3-D5) | Opening hours and jurisdiction only when verified from an official source | `opening_hours_unverified`, `jurisdiction_unverified` |
+
+### 11.2 What happens at read time
+
+- An item, fact, source or consulate attribute whose review date or
+  `valid_until` has passed is shown as **expired**. This is computed when
+  the content is read, so no job has to run for it.
+- Two values in force for one fact key and scope are shown as a
+  **conflict**, with both values and their sources.
+- A source card's link is always the registered `official_url`, never a
+  link from the text.
+
+### 11.3 What the checks cannot do
+
+- They cannot tell whether an editor's own words are a close paraphrase of
+  a protected text (R1). That stays the reviewer's judgement.
+- They cannot verify who the editors really are. The four-eyes check
+  compares handles written in `knowledge/manifest.json`, which anyone with
+  write access can edit (security review P3-R4). The rule only means
+  something together with branch protection, a required review, and a
+  `CODEOWNERS` entry for `knowledge/` that names the second reviewer
+  ([owner actions](OWNER_ACTIONS.md) §1).
+- Rights evidence (permission letters, terms snapshots) is never in this
+  public repository. The loader only checks that a reference is recorded.

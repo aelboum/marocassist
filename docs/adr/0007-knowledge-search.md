@@ -2,7 +2,9 @@
 
 Status: Accepted as design (owner decision, 2026-11-20), under the conditions in
 [Phase 3 architecture report](../phase-3/PHASE3_ARCHITECTURE_REPORT.md) §12–13.
-Implementation has not started and needs separate owner approval.
+**Implemented** on branch `phase-3` (2026-11-21/22, not yet merged); see
+[Implementation](#implementation-phase-3) below and the
+[Phase 3 report](../phase-3/PHASE3_REPORT.md).
 **Decides:** D-07 in `docs/roadmap/RISKS_AND_DECISIONS.md`.
 **Pinned SaaS-OS version:** v0.15.0, `cdede956dd884fc816b234f1b546ce3b983b4efc`.
 
@@ -107,6 +109,101 @@ Measured on the CI image `postgres:16-alpine@sha256:7218…`, 2026-11-20:
 - Recall depends on editor-maintained synonyms and keywords. The golden-set
   evaluation ([search architecture](../phase-3/KNOWLEDGE_SEARCH_ARCHITECTURE.md) §8) measures it.
 - The exception is explicit, small and has a planned exit (U-1).
+
+## Implementation (Phase 3)
+
+What was built, and where it differs from the decision above. Everything
+runs on fixture content only.
+
+### Database (migration `0003_knowledge`)
+
+- Extensions `pg_trgm` and `unaccent`, created by the migration.
+- Immutable helper functions `kn_unaccent`, `kn_normalise_arabic`,
+  `kn_normalise`, `kn_config` and `kn_tsv`. Each sets
+  `search_path = pg_catalog` and calls schema-qualified names such as
+  `public.unaccent`, which closes P3-S5.
+- Global tables:
+  - `knowledge_publications`, `knowledge_sources`, `knowledge_items`,
+    `knowledge_item_texts`, `knowledge_chunks`, `knowledge_facts`,
+    `knowledge_citations` and `knowledge_terms`;
+  - `consulates`, `consulate_attributes` and `consulate_jurisdictions`.
+
+  They have no tenant or user columns (schema test, T-3), and editorial fields (`review`,
+  `notes`, `owner_reviewer`) are never written to them.
+- Per-language generated `tsvector` columns with GIN indexes, and trigram
+  indexes on titles, keywords and terms.
+- **Six SQL functions instead of one.** All are `SECURITY INVOKER`, `STABLE`,
+  and have a pinned `search_path`. `EXECUTE` is revoked from `PUBLIC`.
+  - `knowledge_search(query, lang, filters, k)`: ids, scores, chunk body
+    and source rank. It also matches item titles and keywords, and caps `k`
+    at 6.
+  - `knowledge_expand_terms(words, langs)`: synonyms, plurals and
+    transliterations that share a canonical key, by exact match or trigram
+    similarity ≥ 0.4.
+  - `knowledge_items`, `knowledge_facts` and `knowledge_consulates`: JSON
+    documents for the catalogue reads.
+  - `knowledge_review_snapshot()`: ids and dates for the editors' daily
+    report.
+- Tenant tables:
+  - `knowledge_reports` ("report outdated");
+  - `knowledge_review_reports` (the daily report, stored in the editorial
+    tenant).
+
+  Both use forced RLS through `tenant_rls_statements` and have a purge
+  participant.
+- A global anonymous counter, `knowledge_report_counts` (item, reason, day,
+  count; no tenant column). It lets the daily job read report totals without
+  reading tenant rows.
+- Grants: the app role has `SELECT` on global knowledge. Its only global
+  write is `INSERT` and `UPDATE` on the counter.
+
+### Python modules (`marocassist.knowledge`)
+
+| Module | Role |
+|---|---|
+| `fts` | The one runtime `sqlalchemy` import (`func` only, AST test); calls the SQL functions under the app role with a 200 ms statement timeout |
+| `normalise` | Query cap (256 characters), NFKC, removal of control and bidi characters, Arabic folding identical to the SQL normaliser (tested), language detection, and a safe `websearch_to_tsquery` string |
+| `retrieval` | Two passes: first all words, then any word ranked after full matches. Score = rank × status × freshness × source rank. At most 2 chunks per item and 6 in all. |
+| `catalogue` | Item, fact and consulate reads. Status (current, expired, conflict, under review, withdrawn) is computed at read time with an injectable date. |
+| `routes` | `/v1/tenants/{tenant_id}/knowledge/...` behind `require_permission` (`marocassist.knowledge:read`, `:report`) |
+| `content`, `validate`, `sanitise`, `pii`, `domains` | Bundle format and every publishing check (see the [rights policy](../phase-3/CONTENT_RIGHTS_AND_PROVENANCE.md) §11) |
+| `loader` | The only writer of knowledge (see below) |
+| `review`, `reports` | Daily editor report (SaaS-OS system job) and "report outdated" |
+| `evaluation` | Golden-set harness: recall@6, MRR, fact accuracy, stale leakage |
+| `evidence`, `output_checks` | Evidence pack and post-inference checks, ready for Phase 4 |
+
+### Deviations from the decision
+
+1. **A second SQLAlchemy exception: the loader.** The knowledge tables use
+   PostgreSQL text arrays and JSONB, which the SaaS-OS ORM primitives do not
+   cover.
+   - `marocassist.knowledge.loader` uses SQLAlchemy Core on reflected
+     tables, with no string-built SQL.
+   - It runs only under the migrations role.
+   - An import-linter contract forbids importing it from the app, the API,
+     the worker or any other runtime module.
+   - **The owner still has to accept this exception** ([owner actions](../phase-3/OWNER_ACTIONS.md) §2).
+2. **Search is `POST /search` with a JSON body, not `GET ?q=`.** A query
+   string put the user's question into the access log, the trace span and
+   the edge log. That went against the owner's decision that individual
+   searches are never logged. It was found in the WP E end-to-end run.
+3. **The content version is a hash of the parsed content, not the git SHA.**
+   Unchanged content is therefore a no-op on every deploy, whatever the
+   commit.
+4. **The statement timeout is set by the caller** (`fts`, 200 ms), not
+   inside the SQL function.
+5. **The tenant `citations` stub moves to Phase 4,** with the conversations
+   that would use it.
+
+### Measured results (fixture content, 2026-11-21)
+
+- Golden set: 35 search questions and 8 fact lookups.
+  - recall@6 is 1.00 in NL, FR, AR and EN.
+  - MRR: NL 0.87, FR 0.91, AR 1.00, EN 1.00.
+  - Facts 8/8, stale leakage 0.
+- These numbers come from a small fixture corpus of 9 items. **They say the
+  pipeline works, not that recall on real content will be this high.** The
+  embeddings triggers below must be measured again on real content.
 
 ## When embeddings would be justified (not now)
 
