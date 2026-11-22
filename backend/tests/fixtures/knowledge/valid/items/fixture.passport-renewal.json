@@ -1,0 +1,46 @@
+{
+  "item_id": "fixture.passport-renewal",
+  "kind": "procedure",
+  "rights_class": "R3",
+  "country_scope": ["NL"],
+  "topic_keys": ["passport"],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-04-30",
+  "citations": [{"source_id": "src-fixture-consulat-passport", "locator": "Renouvellement"}],
+  "texts": {
+    "nl": {
+      "title": "Paspoort verlengen bij het consulaat",
+      "body": "## Voorbereiding\n\nU maakt eerst een afspraak bij uw consulaat. Neem uw oude paspoort en uw identiteitskaart mee.\n\n## Op de dag zelf\n\nHet consulaat neemt uw vingerafdrukken en een foto. Lees altijd de officiele pagina voor de actuele voorwaarden.",
+      "keywords": ["paspoort", "verlengen", "vernieuwen"],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Renouveler son passeport au consulat",
+      "body": "Prenez d'abord rendez-vous au consulat. Apportez votre ancien passeport et votre carte d'identité.\n\nLe consulat relève vos empreintes et prend une photo. Consultez toujours la page officielle.",
+      "keywords": ["passeport", "renouvellement"],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "تجديد جواز السفر في القنصلية",
+      "body": "احجز موعدا في القنصلية أولا. أحضر جواز سفرك القديم وبطاقتك الوطنية.",
+      "keywords": ["جواز السفر", "تجديد"],
+      "lang_status": "pending_review",
+      "verified_at": "2026-11-01",
+      "ai_assisted": false,
+      "review": {"author": "ed-fixture-author"}
+    }
+  }
+}

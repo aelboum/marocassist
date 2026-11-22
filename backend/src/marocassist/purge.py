@@ -17,6 +17,8 @@ from saas_os.infra.db import delete, session_scope
 
 from marocassist.accounts import profile, workspace_settings
 from marocassist.accounts.models import PersonalWorkspace
+from marocassist.knowledge import reports as knowledge_reports
+from marocassist.knowledge import review as knowledge_review
 
 
 class AccountsPurgeParticipant:
@@ -37,5 +39,23 @@ class AccountsPurgeParticipant:
 ACCOUNTS_PURGE_PARTICIPANT = AccountsPurgeParticipant()
 
 
+class KnowledgePurgeParticipant:
+    """Removes the tenant's "report outdated" rows and, for the editorial
+    tenant, its daily review reports. Global knowledge and the anonymous
+    report counters hold no tenant data, so there is nothing else to erase."""
+
+    @property
+    def name(self) -> str:
+        return "marocassist.knowledge"
+
+    def purge_tenant_data(self, tenant_id: uuid.UUID) -> None:
+        knowledge_reports.delete_for_tenant(tenant_id)
+        knowledge_review.delete_for_tenant(tenant_id)
+
+
+KNOWLEDGE_PURGE_PARTICIPANT = KnowledgePurgeParticipant()
+
+
 def register_purge_participants() -> None:
     register_purge_participant(ACCOUNTS_PURGE_PARTICIPANT)
+    register_purge_participant(KNOWLEDGE_PURGE_PARTICIPANT)

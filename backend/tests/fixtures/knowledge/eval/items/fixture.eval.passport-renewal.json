@@ -1,0 +1,84 @@
+{
+  "item_id": "fixture.eval.passport-renewal",
+  "kind": "procedure",
+  "rights_class": "R3",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "passport"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-04-30",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Paspoort verlengen bij het consulaat",
+      "body": "## Voorbereiding\n\nMaak een afspraak bij uw consulaat. Neem uw oude paspoort, uw nationale identiteitskaart en twee pasfoto's mee.\n\n## Op de dag zelf\n\nHet consulaat neemt uw vingerafdrukken. U betaalt de leges aan het loket. Controleer altijd de officiële pagina.",
+      "keywords": [
+        "paspoort",
+        "verlengen",
+        "vernieuwen"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Renouveler son passeport au consulat",
+      "body": "Prenez rendez-vous au consulat. Apportez votre ancien passeport, votre carte nationale et deux photos. Le consulat relève vos empreintes et vous payez les droits au guichet.",
+      "keywords": [
+        "passeport",
+        "renouvellement",
+        "renouveler"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "تجديد جواز السفر في القنصلية",
+      "body": "احجز موعدا في القنصلية. أحضر جواز سفرك القديم وبطاقتك الوطنية وصورتين. تأخذ القنصلية بصماتك وتدفع الرسوم في الشباك.",
+      "keywords": [
+        "جواز السفر",
+        "تجديد"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "Renewing your passport at the consulate",
+      "body": "Book an appointment at your consulate. Bring your old passport, your national identity card and two photos. The consulate takes your fingerprints and you pay the fee at the desk.",
+      "keywords": [
+        "passport",
+        "renewal",
+        "renew"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

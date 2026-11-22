@@ -7,7 +7,8 @@
   "scripts": {
     "login": "node login.e2e.mjs",
     "signup": "node signup.e2e.mjs",
-    "extension": "node extension.e2e.mjs"
+    "extension": "node extension.e2e.mjs",
+    "knowledge": "node knowledge.e2e.mjs"
   },
   "devDependencies": {
     "playwright": "1.65.1"

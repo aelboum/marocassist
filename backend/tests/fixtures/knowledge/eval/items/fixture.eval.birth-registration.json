@@ -1,0 +1,87 @@
+{
+  "item_id": "fixture.eval.birth-registration",
+  "kind": "procedure",
+  "rights_class": "R3",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "birth"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-04-30",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Een geboorte laten inschrijven bij het consulaat",
+      "body": "Is uw kind in Nederland geboren? Laat de geboorte inschrijven in de Marokkaanse burgerlijke stand via het consulaat. Neem de Nederlandse geboorteakte en het trouwboekje van de ouders mee.",
+      "keywords": [
+        "geboorte",
+        "geboorteakte",
+        "aangifte",
+        "kind"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Déclarer une naissance au consulat",
+      "body": "Votre enfant est né aux Pays-Bas ? Déclarez la naissance à l'état civil marocain auprès du consulat. Apportez l'acte de naissance néerlandais et le livret de famille.",
+      "keywords": [
+        "naissance",
+        "déclaration",
+        "état civil",
+        "enfant"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "تسجيل الولادة في القنصلية",
+      "body": "إذا ولد طفلك في هولندا، سجل الولادة في الحالة المدنية المغربية لدى القنصلية. أحضر عقد الازدياد الهولندي ودفتر الحالة المدنية.",
+      "keywords": [
+        "ولادة",
+        "ازدياد",
+        "الحالة المدنية"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "Registering a birth at the consulate",
+      "body": "Was your child born in the Netherlands? Register the birth in the Moroccan civil registry through the consulate. Bring the Dutch birth certificate and the family record book.",
+      "keywords": [
+        "birth",
+        "birth certificate",
+        "child"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

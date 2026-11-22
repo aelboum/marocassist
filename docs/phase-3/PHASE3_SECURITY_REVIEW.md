@@ -1,9 +1,9 @@
-# Phase 3 security and privacy review (design stage)
+# Phase 3 security and privacy review
 
 Status: design approved by the owner (2026-11-20) under the conditions in the
-[architecture report](PHASE3_ARCHITECTURE_REPORT.md) §12–13. This reviews a **design**, not code. Nothing is
-implemented, so findings are design risks with required controls; none are
-vulnerabilities in running code.
+[architecture report](PHASE3_ARCHITECTURE_REPORT.md) §12–13. Sections 1–5
+review the **design**. Section 6 adds the independent review of the
+**implemented code** (2026-11-22).
 
 ## 1. Scope and assets
 
@@ -99,6 +99,39 @@ The review covers:
    phrasing. Expected result: the sanitiser flags them, and the evidence pack
    escapes them. With the fake provider, output checks catch planted unsafe
    answers.
+   - **Implemented in WP G** in `backend/tests/fixtures/knowledge/redteam.json`
+     and `test_knowledge_redteam.py`. It has 57 attacks:
+     - visible: EN, FR, NL, AR and Darija phrasings;
+     - hidden: zero-width, word joiner, soft hyphen, tag characters, variation
+       selectors, filler letters, line separators, HTML styling and comments,
+       markdown comments, and text from PDF layers;
+     - metadata: PDF title, EXIF description, author URL;
+     - bidi overrides, isolates and marks;
+     - Cyrillic and Greek homoglyphs;
+     - prompt delimiters (including fullwidth), URLs and XSS.
+   - Each attack must be refused by the sanitiser and by the loader in every
+     kind of text field. There are 16 benign texts in all four languages that
+     must pass.
+   - The first run found 22 gaps:
+     - FR, NL and AR phrasings beyond the original patterns;
+     - variation selectors and other invisible letters;
+     - line separators;
+     - RLM and ALM, which were refused only as generic controls;
+     - markdown comments;
+     - homoglyphs.
+
+     The sanitiser now closes all of them.
+   - **WP H** covers the evidence-pack and output-check halves of this control, with the same fixture:
+     - `test_knowledge_evidence.py` places every attack in the body, title, heading, fact value and source-card fields. It checks that the rendered pack stays well formed, contains no hidden characters, and returns each text unchanged as data.
+     - `test_knowledge_output_checks.py` feeds planted unsafe answers to the output checks, as a fake provider would return them. These include:
+       - answers that obey an injection;
+       - wrong fees;
+       - foreign links;
+       - credential and payment requests;
+       - contacts;
+       - hidden characters.
+
+       The checks block every one of them.
 
 ## 4. Privacy (GDPR/AVG; Moroccan law 09-08)
 
@@ -128,3 +161,52 @@ The review covers:
 | P3-S6 | Info | The import-linter exception for `knowledge.fts` widens the database chokepoint by one module | Accepted with exit U-1 |
 
 No design-level critical or high findings.
+
+Status of the design findings after implementation:
+
+| ID | Status |
+|---|---|
+| P3-S1 | Open: second reviewer not appointed (P3-D3) |
+| P3-S2 | Open: the loader refuses R4–R6 (`rights_class_not_allowed`) until Q-K1/Q-K2 are answered |
+| P3-S3 | Open: branch protection not enabled (P2-F7) |
+| P3-S4 | Resolved (2026-11-20) |
+| P3-S5 | **Closed**: every helper and SQL function sets `search_path = pg_catalog` and schema-qualifies its calls (`public.unaccent`, `public.similarity`) |
+| P3-S6 | Accepted. In addition, the loader is a second SQLAlchemy exception, awaiting owner acceptance ([owner actions](OWNER_ACTIONS.md) §2) |
+
+## 6. Code review of the implementation (2026-11-22)
+
+An independent, read-only review of `main..phase-3` covered:
+
+- the migration and SQL functions, and the grants;
+- `fts`, the loader, the routes, reports and the review job;
+- the evidence pack, the output checks, the sanitiser and the domain
+  allow-list;
+- the web knowledge pages;
+- CI, configuration, jobs and purge.
+
+It found **no critical or high issues**. It confirmed:
+
+- every SQL function is `SECURITY INVOKER` with a pinned `search_path` and
+  no dynamic SQL;
+- the app role has `SELECT` only on global knowledge, and `EXECUTE` is
+  revoked from `PUBLIC`;
+- the search query is never logged or put in a URL;
+- the web uses no `dangerouslySetInnerHTML`, and outbound links are https
+  only, with `noopener noreferrer`;
+- there is no breakout from the evidence pack;
+- the loader uses one transaction and an advisory lock;
+- CI has a read-only token, actions pinned by SHA, and no secrets;
+- there are no cross-tenant read paths.
+
+| ID | Sev. | Finding | Status |
+|---|---|---|---|
+| P3-R1 | Medium | The output checks' link allow-list missed bare domains with other TLDs (`wa.me`, `bit.ly`, `t.me`), IP addresses, other schemes (`ftp:`, `javascript:`, `//host`) and homoglyph domains (Cyrillic letters) | **Fixed**: any dotted host with a letter TLD in any script, IPv4 and other schemes are flagged; `mixed_script` blocks (tests added) |
+| P3-R4 | Medium | Four-eyes trusts handles written in `knowledge/manifest.json`; one committer can fill in both author and approver | **Open, owner action**: branch protection with required review, and `CODEOWNERS` for `knowledge/` naming the second reviewer ([owner actions](OWNER_ACTIONS.md) §1). Same root cause as T-2 and P3-S3. |
+| P3-R2 | Low | "100,000 MAD" was read as 100, so a wrong amount could pass as a cited fee of 100 | **Fixed**: grouped numbers are read as thousands (tested) |
+| P3-R3 | Low | Dollars and pounds were not recognised as currencies | **Fixed** (tested). Remaining limit: a number cited to a source chunk (not a fact) is not compared with the chunk text. |
+| P3-R5 | Low | The CI dry run was skipped when `knowledge/manifest.json` was absent | **Fixed**: CI fails when `knowledge/` has content but no manifest |
+| P3-R6 | Low | Two identical concurrent "report outdated" requests could both be counted | **Fixed**: per-tenant advisory lock around the check-then-insert |
+| P3-R7 | Low (uncertain) | `similarity() >= 0.4` in `knowledge_expand_terms` cannot use the trigram index; cost grows with the term table | **Open**: bounded by the 200 ms timeout (a slow search returns 503, not an outage). Revisit when the term table has more than about 10,000 rows (switch to the `%` operator with `set_limit`). |
+| P3-R8 | Info | The anonymous counter `knowledge_report_counts` has no RLS (by design). A count of 1 per item and day is a weak signal in a very small user base. | Accepted: no tenant or user column; the review report is for editors only. Statistics outside the editor report follow the minimum-10 rule (P3-D9). |
+| P3-R9 | Info | The domain allow-list accepts any subdomain, so a taken-over dangling subdomain of an allow-listed domain would pass as official | **Open**: consider exact hosts for Moroccan domains when real sources are registered (domain review is part of every allow-list change) |
+| P3-R10 | Info | Several files showed as whole-file rewrites because of CRLF line endings | **Fixed**: LF restored (`git diff -w` empty) |

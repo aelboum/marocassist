@@ -1,0 +1,179 @@
+[
+  {
+    "fact_id": "fixture.eval.fee.passport.adult",
+    "fact_key": "fee.passport_renewal.adult",
+    "scope": "global",
+    "value": 300,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  },
+  {
+    "fact_id": "fixture.eval.fee.passport.adult-2025",
+    "fact_key": "fee.passport_renewal.adult",
+    "scope": "global",
+    "value": 250,
+    "unit": "MAD",
+    "valid_from": "2025-01-01",
+    "status": "published",
+    "verified_at": "2025-06-01",
+    "review_due_at": "2025-08-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2025-06-02"
+    },
+    "valid_until": "2025-12-31"
+  },
+  {
+    "fact_id": "fixture.eval.fee.passport.minor",
+    "fact_key": "fee.passport_renewal.minor",
+    "scope": "global",
+    "value": 200,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  },
+  {
+    "fact_id": "fixture.eval.fee.passport.minor-withdrawn",
+    "fact_key": "fee.passport_renewal.minor",
+    "scope": "global",
+    "value": 999,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "withdrawn",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  },
+  {
+    "fact_id": "fixture.eval.fee.consular-card.rotterdam",
+    "fact_key": "fee.consular_card.adult",
+    "scope": "consulate:nl-rotterdam",
+    "value": 50,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  },
+  {
+    "fact_id": "fixture.eval.fee.national-id.adult",
+    "fact_key": "fee.national_id_card.adult",
+    "scope": "global",
+    "value": 75,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-08-01",
+    "review_due_at": "2026-10-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-08-02"
+    }
+  },
+  {
+    "fact_id": "fixture.eval.fee.legalisation.a",
+    "fact_key": "fee.signature_legalisation.standard",
+    "scope": "country:NL",
+    "value": 20,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  },
+  {
+    "fact_id": "fixture.eval.fee.legalisation.b",
+    "fact_key": "fee.signature_legalisation.standard",
+    "scope": "country:NL",
+    "value": 25,
+    "unit": "MAD",
+    "valid_from": "2026-01-01",
+    "status": "published",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-01-30",
+    "citations": [
+      {
+        "source_id": "src-fixture-consulat-passport",
+        "locator": "Tarifs"
+      }
+    ],
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  }
+]

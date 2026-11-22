@@ -1,0 +1,41 @@
+{
+  "about": "Fixed answer texts per language (Phase 3 WP H; search architecture section 5, rules 5 and 6). Used by output_checks.py; editors review the wording like any content.",
+  "notices": {
+    "expired": {
+      "nl": "Let op: deze informatie is niet recent gecontroleerd. Controleer de officiële bron.",
+      "fr": "Attention : cette information n'a pas été vérifiée récemment. Consultez la source officielle.",
+      "ar": "تنبيه: لم يتم التحقق من هذه المعلومات مؤخرا. راجع المصدر الرسمي.",
+      "en": "Note: this information has not been checked recently. Check the official source."
+    },
+    "conflict": {
+      "nl": "Let op: de bronnen noemen verschillende waarden. Vraag de juiste waarde na bij het consulaat.",
+      "fr": "Attention : les sources indiquent des valeurs différentes. Vérifiez auprès du consulat.",
+      "ar": "تنبيه: تذكر المصادر قيما مختلفة. تحقق من القيمة الصحيحة لدى القنصلية.",
+      "en": "Note: the sources give different values. Check the correct value with the consulate."
+    },
+    "secondary_only": {
+      "nl": "Let op: deze informatie komt niet van een officiële bron.",
+      "fr": "Attention : cette information ne provient pas d'une source officielle.",
+      "ar": "تنبيه: هذه المعلومات ليست من مصدر رسمي.",
+      "en": "Note: this information does not come from an official source."
+    },
+    "under_review": {
+      "nl": "Let op: deze informatie wordt opnieuw gecontroleerd.",
+      "fr": "Attention : cette information est en cours de vérification.",
+      "ar": "تنبيه: هذه المعلومات قيد المراجعة حاليا.",
+      "en": "Note: this information is being checked again."
+    }
+  },
+  "no_evidence": {
+    "nl": "Ik kan dit niet bevestigen; raadpleeg de officiële bron.",
+    "fr": "Je ne peux pas le confirmer ; consultez la source officielle.",
+    "ar": "لا أستطيع تأكيد ذلك؛ راجع المصدر الرسمي.",
+    "en": "I cannot confirm this; please consult the official source."
+  },
+  "clarify_consulate": {
+    "nl": "Bij welk consulaat bent u ingeschreven?",
+    "fr": "Auprès de quel consulat êtes-vous inscrit ?",
+    "ar": "في أي قنصلية أنت مسجل؟",
+    "en": "Which consulate are you registered with?"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "item_id": "fixture.eval.old-consular-card",
+  "kind": "explanation",
+  "rights_class": "R1",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "consular_card"
+  ],
+  "status": "withdrawn",
+  "version": 1,
+  "review_due_at": "2026-11-10",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Oude regeling voor de consulaire kaart",
+      "body": "De oude regeling voor de consulaire kaart geldt niet meer.",
+      "keywords": [
+        "consulaire kaart"
+      ],
+      "lang_status": "published",
+      "verified_at": "2025-11-15",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2025-11-16"
+      }
+    },
+    "fr": {
+      "title": "Ancienne procédure de la carte consulaire",
+      "body": "L'ancienne procédure de la carte consulaire ne s'applique plus.",
+      "keywords": [
+        "carte consulaire"
+      ],
+      "lang_status": "published",
+      "verified_at": "2025-11-15",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2025-11-16"
+      }
+    }
+  },
+  "superseded_by": "fixture.eval.consular-card"
+}

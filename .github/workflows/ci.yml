@@ -56,6 +56,18 @@ jobs:
         run: uv run --locked lint-imports --no-cache
       - name: Unit, architecture and contract tests
         run: uv run --locked pytest -p no:cacheprovider
+      - name: Knowledge content dry run (rights, PII, sanitiser, allow-list, four-eyes)
+        # No database: checks the bundle in knowledge/ once it has a manifest.
+        run: |
+          if [ -f ../knowledge/manifest.json ]; then
+            uv run --locked python -m marocassist.knowledge.loader --dry-run ../knowledge
+          elif find ../knowledge -type f ! -name README.md ! -name content.schema.json | grep -q .; then
+            # Content without a manifest must not skip the check (security review P3-R5).
+            echo "knowledge/ has content but no manifest.json" >&2
+            exit 1
+          else
+            echo "knowledge/ has no content yet; nothing to check"
+          fi
 
   integration:
     name: integration (PostgreSQL 16, Redis 7)
@@ -104,7 +116,7 @@ jobs:
       - name: Install exactly the locked environment
         working-directory: backend
         run: uv sync --locked
-      - name: Integration tests (migrations, role guard, isolation, pairing, audit)
+      - name: Integration tests (migrations, role guard, isolation, pairing, audit, knowledge golden set)
         working-directory: backend
         run: uv run --locked pytest -m integration -p no:cacheprovider
 

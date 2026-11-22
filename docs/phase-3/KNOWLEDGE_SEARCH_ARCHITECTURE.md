@@ -176,6 +176,31 @@ Rules:
 7. **No tools:** SaaS-OS refuses tools anyway. The model cannot fetch, browse
    or call anything.
 
+**Implemented in WP H:**
+
+- **`marocassist.knowledge.evidence` builds the pack.** `assemble` is pure; `build_evidence` searches, fetches and assembles.
+  - Sources are labelled `S1..S6` and hold at most about 6,000 characters in total. Each carries its status, its badge and `secondary_only`.
+  - Facts are labelled `F1..`, one per value. A conflict shows every value.
+  - Source cards are labelled `C1..` and are built from the source register. Their URLs are the only links an answer may use.
+  - A `clarify` element appears when a requested fee exists per consulate only.
+- **Every text and attribute is escaped again.** Markup becomes entities, and bidi, invisible and control characters become numeric references. Each red-team attack, placed in any field, stays inert inside one well-formed pack.
+- **`marocassist.knowledge.output_checks` checks a model answer against its pack.** It does two kinds of thing:
+  - **Repairs:** it removes unknown citations, and it appends a fixed notice for expired, conflict, secondary-only or under-review content when the answer leaves it out.
+  - **Blocks:** it rejects the answer for any of these:
+    - a procedural sentence without a citation;
+    - an amount that differs from the evidence;
+    - a link that is not a source card;
+    - a request for a credential or number;
+    - a money transfer;
+    - contact details or an intermediary;
+    - hidden characters;
+    - the wrong language;
+    - any answer to an empty pack other than the fixed reply.
+
+  A blocked answer is replaced by the fixed "cannot confirm" reply, with the official source cards.
+- **The fixed texts in four languages are in `answer_texts.json`.**
+- **The checks err on the side of blocking.** For example, "never share your DigiD code" is blocked too.
+
 ## 6. Consulate data model
 
 Each attribute group can be verified and updated on its own:
@@ -211,12 +236,14 @@ chain is reused instead of building a parallel, tenant-less authorisation path.
 
 | Method and path (prefix `/v1/tenants/{tenant_id}/knowledge`) | Auth | Purpose |
 |---|---|---|
-| `GET /search?q=&lang=&consulate=&kind=` | `require_permission` `marocassist.knowledge:read` (owner role; grant migration for existing tenants) | Search results: item id, title, snippet (`ts_headline`, escaped), status, source cards. No tenant data is written. |
+| `POST /search` with JSON body `{q, lang, consulate, kind}` (implemented in WP D/E; the query is never in a URL, so access logs, trace spans and the edge log never contain it) | `require_permission` `marocassist.knowledge:read` (owner role; grant migration for existing tenants) | Search results: item id, title, snippet (`ts_headline`, escaped), status, source cards. No tenant data is written. |
 | `GET /items/{item_id}?lang=` | Same | Published item and citations |
 | `GET /facts/{fact_key}?consulate=` | Same | Fact value(s) with status and sources; conflict returns all values |
 | `GET /consulates` and `/consulates/{code}` | Same | Consulate attributes with per-attribute status |
 | `POST /reports` | User, `marocassist.knowledge:report` | "Report outdated"; stored tenant-scoped with RLS |
 | Editor API (later) | Editorial tenant permissions `marocassist.editorial:{draft,review,publish}` | Only if the file-based workflow (P3-D2) is replaced |
+
+Search is a `POST` although it writes nothing: a query string would put the user's question into every access log, trace span (`http.target`) and the edge log, against the owner decision that individual searches are not logged (security review section 4). Found during the WP E end-to-end run.
 
 Search stays authenticated. That avoids a public scraping surface, and the
 SaaS-OS per-tenant rate limit applies. A public, unauthenticated catalogue
@@ -243,6 +270,24 @@ is a later product decision (P3-D8).
 - **Process:** run in CI against a fixture corpus with no network. Report the
   results per language. The thresholds in the ADR trigger a re-evaluation of
   embeddings.
+- **Implemented in WP G:**
+  - The harness is `marocassist.knowledge.evaluation`. It runs the golden set
+    through the same catalogue functions as the API.
+  - Fixture content:
+    - the evaluation corpus `backend/tests/fixtures/knowledge/eval`: 9 items
+      in four languages, including a stale item and a withdrawn item, plus
+      8 facts covering current, expired, out-of-force, withdrawn, conflict and
+      consulate-only cases;
+    - the golden set `golden.json`: 35 questions (NL 12, FR 8, AR 9 including
+      Darija in Latin and Arabic script, EN 6) and 8 fact lookups.
+  - The integration test fails CI below recall@6 0.85 in any language, below
+    fact accuracy 1.0, or on any stale leak. It writes the per-language report
+    to the GitHub job summary.
+  - Which rows are stale is computed from the bundle, not from the code under
+    test.
+  - p95 latency is reported but not gated, because CI runners are too noisy
+    for a time limit.
+  - The editors' 150-question set will use the same format on real content.
 
 ## 9. Search quality limits (stated, not hidden)
 

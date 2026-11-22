@@ -166,7 +166,7 @@ log scan.
 | C-3 | `DATA_ARCHITECTURE.md` §5 says "writes through the app role only from editorial routes". | Replace with "loader under the migrations role; app role `SELECT` only" (stronger integrity). |
 | C-4 | `AI_ARCHITECTURE.md` lists streaming as missing. `stream_inference` exists in the pin's public API but always raises `InferenceUnsupportedCapabilityError`. | Clarify the wording; the conclusion is unchanged. |
 | C-5 | **Second ID collision (U-3).** `docs/phase-2/PHASE2_AUDIT_AND_PLAN.md` called a self-service "log out everywhere" proposal "U-3", but U-3 is streaming inference (Phase 0 register; `docs/phase-1/STREAMING_SPIKE.md`). | **Resolved (final owner decision 2026-11-20).** "Log out everywhere" is U-11, with a design proposal and open questions in `RISKS_AND_DECISIONS.md` §3.1. U-3 stays streaming inference. |
-| C-2…C-4 status | Not changed in this commit; the documentation task covered only the Phase 3 documents, the ADR and the U-renumbering. | Proposed for a later docs commit. |
+| C-2…C-4 status | Not changed in this commit; the documentation task covered only the Phase 3 documents, the ADR and the U-renumbering. | **Done** in Phase 3 WP I (2026-11-22). |
 
 ## 12. Verdict
 
@@ -226,4 +226,6 @@ Status per decision after the owner's decision of 2026-11-20.
 - **Editorial:** likely larger than the engineering effort, and it is the
   critical path to useful content.
 
-Nothing in this design is implemented or migrated.
+Update 2026-11-22: the design is implemented on branch `phase-3` (PR #3,
+not merged); see the [Phase 3 report](PHASE3_REPORT.md). Corrections C-2 to
+C-4 were applied to `DATA_ARCHITECTURE.md` and `AI_ARCHITECTURE.md` in WP I.

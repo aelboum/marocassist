@@ -1,7 +1,9 @@
-# Phase 3 implementation plan (proposal; not started)
+# Phase 3 implementation plan
 
-Status: design approved by the owner (2026-11-20). **Implementation has not
-started and needs separate, explicit owner approval.**
+Status: design approved by the owner (2026-11-20); implementation approved
+and **carried out** (WP A–I) on branch `phase-3`, open as PR #3. Results,
+deviations and the acceptance status are in the
+[Phase 3 report](PHASE3_REPORT.md). The plan below is kept as approved.
 
 Preconditions:
 

@@ -1,0 +1,26 @@
+{
+  "item_id": "fixture.consulate-visit",
+  "kind": "explanation",
+  "rights_class": "R1",
+  "country_scope": ["NL"],
+  "consulate_scope": ["nl-rotterdam"],
+  "topic_keys": ["consulate"],
+  "status": "published",
+  "version": 2,
+  "review_due_at": "2027-11-01",
+  "citations": [{"source_id": "src-fixture-rijksoverheid-consulates"}],
+  "texts": {
+    "nl": {
+      "title": "Een bezoek aan het consulaat in Schiedam",
+      "body": "Het consulaat-generaal Rotterdam is gevestigd in Schiedam. Controleer voor uw bezoek de officiele pagina.",
+      "keywords": ["consulaat", "Schiedam"],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

@@ -17,6 +17,7 @@ COPILOT = "marocassist.copilot"
 PROFILE = "marocassist.profile"
 CONSENT = "marocassist.consent"
 ACCOUNT = "marocassist.account"
+KNOWLEDGE = "marocassist.knowledge"
 
 READ = "read"
 UPDATE = "update"
@@ -25,6 +26,7 @@ USE = "use"  # call the Copilot API with a paired device credential
 ONBOARD = "onboard"  # complete onboarding: profile + required consents at once
 EXPORT = "export"  # download a copy of the account's product data
 DELETE = "delete"  # request deletion of the account
+REPORT = "report"  # report a knowledge item as outdated or incorrect
 
 PHASE_1_PERMISSIONS: tuple[tuple[str, str], ...] = (
     (WORKSPACE, READ),
@@ -46,7 +48,17 @@ PHASE_2_PERMISSIONS: tuple[tuple[str, str], ...] = (
     (ACCOUNT, DELETE),
 )
 
-PRODUCT_PERMISSIONS: tuple[tuple[str, str], ...] = PHASE_1_PERMISSIONS + PHASE_2_PERMISSIONS
+# Added in Phase 3: read the curated knowledge (search, items, facts,
+# consulates) and report an item. Existing tenants receive them through
+# grant migration 0002 below.
+PHASE_3_PERMISSIONS: tuple[tuple[str, str], ...] = (
+    (KNOWLEDGE, READ),
+    (KNOWLEDGE, REPORT),
+)
+
+PRODUCT_PERMISSIONS: tuple[tuple[str, str], ...] = (
+    PHASE_1_PERMISSIONS + PHASE_2_PERMISSIONS + PHASE_3_PERMISSIONS
+)
 
 # SaaS-OS permissions the owner needs to pair a device on their own tenant:
 # create a service account, give it the Copilot role, issue and revoke its
@@ -87,6 +99,13 @@ PERMISSION_GRANT_MIGRATIONS: tuple[PermissionGrantMigration, ...] = (
         role_name=OWNER_ROLE,
         permissions=PHASE_2_PERMISSIONS,
         reason="Phase 2: profile, consents, onboarding, export and deletion request",
+    ),
+    PermissionGrantMigration(
+        id="0002_owner_knowledge",
+        namespace=GRANT_NAMESPACE,
+        role_name=OWNER_ROLE,
+        permissions=PHASE_3_PERMISSIONS,
+        reason="Phase 3: read curated knowledge and report outdated items",
     ),
 )
 

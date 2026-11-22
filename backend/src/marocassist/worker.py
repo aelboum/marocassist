@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 
 def run(argv: list[str] | None = None) -> int:
     try:
-        from marocassist.jobs import JOB_FUNCTIONS  # noqa: PLC0415 -- resolves REDIS_URL
+        from marocassist.jobs import CRON_JOBS, JOB_FUNCTIONS  # noqa: PLC0415 -- resolves REDIS_URL
     except Exception as exc:  # noqa: BLE001 -- every startup failure must exit non-zero
         configure_logging()
         logger.error("worker_startup_failed", extra={"error_type": safe_exception_type(exc)})
         return 1
-    return int(main(argv, extra_functions=JOB_FUNCTIONS))
+    return int(main(argv, extra_functions=JOB_FUNCTIONS, extra_cron_jobs=CRON_JOBS))
 
 
 if __name__ == "__main__":

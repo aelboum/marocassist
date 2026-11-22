@@ -1,0 +1,243 @@
+{
+  "review": {
+    "author": "ed-fixture-author",
+    "approver": "ed-fixture-reviewer",
+    "approved_at": "2026-11-02"
+  },
+  "terms": [
+    {
+      "term": "paspoort",
+      "lang": "nl",
+      "canonical_key": "passport",
+      "kind": "synonym"
+    },
+    {
+      "term": "passeport",
+      "lang": "fr",
+      "canonical_key": "passport",
+      "kind": "synonym"
+    },
+    {
+      "term": "passport",
+      "lang": "en",
+      "canonical_key": "passport",
+      "kind": "synonym"
+    },
+    {
+      "term": "جواز",
+      "lang": "ar",
+      "canonical_key": "passport",
+      "kind": "synonym"
+    },
+    {
+      "term": "جوازات",
+      "lang": "ar",
+      "canonical_key": "passport",
+      "kind": "plural"
+    },
+    {
+      "term": "basbor",
+      "lang": "ary",
+      "canonical_key": "passport",
+      "kind": "transliteration"
+    },
+    {
+      "term": "paspor",
+      "lang": "ary",
+      "canonical_key": "passport",
+      "kind": "transliteration"
+    },
+    {
+      "term": "باسبور",
+      "lang": "ary",
+      "canonical_key": "passport",
+      "kind": "transliteration"
+    },
+    {
+      "term": "identiteitskaart",
+      "lang": "nl",
+      "canonical_key": "national_id",
+      "kind": "synonym"
+    },
+    {
+      "term": "carte nationale",
+      "lang": "fr",
+      "canonical_key": "national_id",
+      "kind": "synonym"
+    },
+    {
+      "term": "cnie",
+      "lang": "fr",
+      "canonical_key": "national_id",
+      "kind": "abbreviation"
+    },
+    {
+      "term": "identity card",
+      "lang": "en",
+      "canonical_key": "national_id",
+      "kind": "synonym"
+    },
+    {
+      "term": "البطاقة الوطنية",
+      "lang": "ar",
+      "canonical_key": "national_id",
+      "kind": "synonym"
+    },
+    {
+      "term": "geboorte",
+      "lang": "nl",
+      "canonical_key": "birth",
+      "kind": "synonym"
+    },
+    {
+      "term": "naissance",
+      "lang": "fr",
+      "canonical_key": "birth",
+      "kind": "synonym"
+    },
+    {
+      "term": "birth",
+      "lang": "en",
+      "canonical_key": "birth",
+      "kind": "synonym"
+    },
+    {
+      "term": "ولادة",
+      "lang": "ar",
+      "canonical_key": "birth",
+      "kind": "synonym"
+    },
+    {
+      "term": "ازدياد",
+      "lang": "ar",
+      "canonical_key": "birth",
+      "kind": "alias"
+    },
+    {
+      "term": "huwelijk",
+      "lang": "nl",
+      "canonical_key": "marriage",
+      "kind": "synonym"
+    },
+    {
+      "term": "trouwen",
+      "lang": "nl",
+      "canonical_key": "marriage",
+      "kind": "synonym"
+    },
+    {
+      "term": "mariage",
+      "lang": "fr",
+      "canonical_key": "marriage",
+      "kind": "synonym"
+    },
+    {
+      "term": "marriage",
+      "lang": "en",
+      "canonical_key": "marriage",
+      "kind": "synonym"
+    },
+    {
+      "term": "زواج",
+      "lang": "ar",
+      "canonical_key": "marriage",
+      "kind": "synonym"
+    },
+    {
+      "term": "zwaj",
+      "lang": "ary",
+      "canonical_key": "marriage",
+      "kind": "transliteration"
+    },
+    {
+      "term": "volmacht",
+      "lang": "nl",
+      "canonical_key": "power_of_attorney",
+      "kind": "synonym"
+    },
+    {
+      "term": "procuration",
+      "lang": "fr",
+      "canonical_key": "power_of_attorney",
+      "kind": "synonym"
+    },
+    {
+      "term": "power of attorney",
+      "lang": "en",
+      "canonical_key": "power_of_attorney",
+      "kind": "synonym"
+    },
+    {
+      "term": "وكالة",
+      "lang": "ar",
+      "canonical_key": "power_of_attorney",
+      "kind": "synonym"
+    },
+    {
+      "term": "wkala",
+      "lang": "ary",
+      "canonical_key": "power_of_attorney",
+      "kind": "transliteration"
+    },
+    {
+      "term": "kafala",
+      "lang": "ary",
+      "canonical_key": "kafala",
+      "kind": "transliteration"
+    },
+    {
+      "term": "كفالة",
+      "lang": "ar",
+      "canonical_key": "kafala",
+      "kind": "synonym"
+    },
+    {
+      "term": "consulaire kaart",
+      "lang": "nl",
+      "canonical_key": "consular_card",
+      "kind": "synonym"
+    },
+    {
+      "term": "carte consulaire",
+      "lang": "fr",
+      "canonical_key": "consular_card",
+      "kind": "synonym"
+    },
+    {
+      "term": "consular card",
+      "lang": "en",
+      "canonical_key": "consular_card",
+      "kind": "synonym"
+    },
+    {
+      "term": "البطاقة القنصلية",
+      "lang": "ar",
+      "canonical_key": "consular_card",
+      "kind": "synonym"
+    },
+    {
+      "term": "consulaat",
+      "lang": "nl",
+      "canonical_key": "consulate",
+      "kind": "synonym"
+    },
+    {
+      "term": "consulat",
+      "lang": "fr",
+      "canonical_key": "consulate",
+      "kind": "synonym"
+    },
+    {
+      "term": "consulate",
+      "lang": "en",
+      "canonical_key": "consulate",
+      "kind": "synonym"
+    },
+    {
+      "term": "قنصلية",
+      "lang": "ar",
+      "canonical_key": "consulate",
+      "kind": "synonym"
+    }
+  ]
+}

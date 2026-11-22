@@ -21,6 +21,7 @@ from marocassist.accounts.routes import router as accounts_router
 from marocassist.api.meta import router as meta_router
 from marocassist.copilot.routes import router as copilot_router
 from marocassist.errors import install_exception_handlers
+from marocassist.knowledge.routes import router as knowledge_router
 from marocassist.privacy.routes import router as privacy_router
 from marocassist.purge import register_purge_participants
 
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
     app.include_router(accounts_router)
     app.include_router(copilot_router)
     app.include_router(privacy_router)
+    app.include_router(knowledge_router)
     register_purge_participants()
     return app
 

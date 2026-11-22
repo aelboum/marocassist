@@ -10,7 +10,7 @@ uses `saas_os.infra.db` primitives only.
 
 | Class | Examples | Storage rule |
 |---|---|---|
-| Global public | Services, procedures, consulates, knowledge chunks, translations cache | Non-tenant tables; readable by the app role; writes only via editorial routes |
+| Global public | Services, procedures, consulates, knowledge chunks, translations cache | Non-tenant tables; the app role has `SELECT` only; written only by the publishing loader under the migrations role at deploy (Phase 3, ADR-0007) |
 | Tenant personal | Profile, preferences, conversations, page contexts, preparations | `tenant_id` FK to `core.tenants.id`, RLS via `tenant_rls_statements`, purge participant |
 | Tenant highly sensitive | Identity numbers, documents, extractions | As above + field/envelope encryption; separate retention |
 | Platform | Users, tenants, sessions, billing, audit, AI attempts | SaaS-OS owned; never written directly by MarocAssist |
@@ -50,8 +50,8 @@ erDiagram
 - `procedure_steps(id, procedure_id, ordinal, title jsonb, body jsonb, rdv_page_id nullable)`
 - `document_requirements(id, procedure_id, doc_type, conditions jsonb, mandatory)`
 - `consulates(id, name, country, city, address, contact jsonb, source_id)`
-- `sources(id, publisher, url, title, language, licence_status{unknown,link_only,authorised}, last_checked_at, last_changed_at, content_hash)`
-- `source_snapshots(id, source_id, fetched_at, http_status, content_hash, text_ref nullable)`
+- `sources(...)`: superseded in Phase 3 by `knowledge_sources`, with `licence`, `allowed_use` and the rights classes R1-R6 (`docs/phase-3/CONTENT_RIGHTS_AND_PROVENANCE.md` sections 2-3).
+- No `source_snapshots` with page text: until legal question Q-K2 is answered, only the URL, title, hash and editor notes are kept, never a copy of the content.
 - `knowledge_chunks(id, source_id nullable, procedure_id nullable, language, text, tsv, status, version)`
 - `review_tasks(id, kind, target_id, reason, assigned_to, status)`
 - `translation_cache(key_hash, target_lang, text, rules_version, created_at)`
@@ -100,8 +100,10 @@ operator-approved job with an SLA (GDPR: one month).
 - Every product migration: schema `marocassist`, RLS statements for tenant
   tables, explicit grants to the app role, reversible where feasible, tested
   in CI against PostgreSQL 16 with the real role setup.
-- Global tables: grant `SELECT` to the app role; writes through the app role
-  only from editorial routes (permission checked in the editorial tenant).
+- Global tables: grant `SELECT` to the app role only. Writes happen only
+  through the publishing loader, under the migrations role at deploy time,
+  with an audit row in the editorial tenant (Phase 3; correction C-3 in
+  `docs/phase-3/PHASE3_ARCHITECTURE_REPORT.md`).
 
 ## 6. Search index
 
