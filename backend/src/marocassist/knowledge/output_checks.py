@@ -76,17 +76,34 @@ _CITATION: Final = re.compile(r"\[\s*([SF]\d{1,2}(?:\s*,\s*[SF]\d{1,2})*)\s*\]")
 _LABEL: Final = re.compile(r"[SF]\d{1,2}")
 _SENTENCE: Final = re.compile(r"(?<=[.!?\u061f])\s+|\n+")
 _DIGIT: Final = re.compile(r"\d")
-_NUMBER: Final = r"\d+(?:[.,]\d+)?"
-_CURRENCY: Final = r"(?:mad|dhs?|dirhams?|\u062f\u0631\u0647\u0645|eur|euros?|\u20ac)"
+# A grouped number ("1.000", "100,000") is read as thousands, before the
+# decimal form, so "100,000 MAD" is never read as 100 (security review P3-R2).
+_NUMBER: Final = r"\d{1,3}(?:[.,]\d{3})+(?![.,]?\d)|\d+(?:[.,]\d+)?"
+_GROUPED: Final = re.compile(r"\d{1,3}(?:[.,]\d{3})+")
+# Every currency an answer might name; any amount whose (number, unit) is
+# not in the evidence is a mismatch (P3-R3).
+_CURRENCY: Final = (
+    r"(?:mad|dhs?|dirhams?|\u062f\u0631\u0647\u0645|eur|euros?|\u20ac"
+    r"|usd|dollars?|\$|gbp|pounds?|\u00a3)"
+)
 _AMOUNT: Final = re.compile(
     rf"(?:(?P<a>{_NUMBER})\s?(?P<u1>{_CURRENCY})(?!\w)|(?P<u2>{_CURRENCY})\s?(?P<b>{_NUMBER}))",
     re.IGNORECASE,
 )
 _UNIT_OF: Final = {"mad": "MAD", "dh": "MAD", "dhs": "MAD", "eur": "EUR", "\u20ac": "EUR"}
 _URL: Final = re.compile(r"(?i)\b(?:https?://|www\.)[^\s<>()\[\]\"']+")
-_DOMAIN: Final = re.compile(
-    r"(?i)\b(?:[a-z0-9-]+\.)+(?:nl|ma|be|fr|de|eu|com|org|net|info|io|gov)\b(?:/[^\s]*)?"
+# Any other scheme, a scheme-relative link, or a script/data/messaging
+# scheme without slashes (P3-R1).
+_OTHER_LINK: Final = re.compile(
+    r"(?i)(?<![\w/])(?:(?!https?:)[a-z][a-z0-9+.-]*://|//[^\s/]"
+    r"|(?:javascript|vbscript|data|mailto|tel|sms|whatsapp|file):(?=\S))"
 )
+# Any dotted host with a letter top-level label, in any script (Unicode
+# \w), so short-link, messaging and homoglyph domains are caught too (P3-R1).
+_DOMAIN: Final = re.compile(
+    r"(?<![\w@.-])(?:[^\W_](?:[\w-]*[^\W_])?\.)+[^\W\d_]{2,}(?![\w-])(?:/\S*)?"
+)
+_IP: Final = re.compile(r"(?<![\w.])\d{1,3}(?:\.\d{1,3}){3}(?![\w.])")
 
 # Procedural words, folded.
 _PROCEDURAL: Final = re.compile(
@@ -135,7 +152,11 @@ _UNOFFICIAL: Final = re.compile(
     r"\b(?:whatsapp|telegram|snapchat|instagram|facebook|tiktok|bemiddelaar|tussenpersoon"
     r"|intermediaire|\u0633\u0645\u0633\u0627\u0631|\u0648\u0633\u064a\u0637)\b"
 )
-_HIDDEN_CODES: Final = frozenset({"bidi_control", "zero_width", "invisible", "control"})
+# mixed_script: a word mixing Latin, Cyrillic or Greek letters is a
+# homoglyph, for example a look-alike domain (P3-R1).
+_HIDDEN_CODES: Final = frozenset(
+    {"bidi_control", "zero_width", "invisible", "control", "mixed_script"}
+)
 
 
 @dataclass(frozen=True)
@@ -174,7 +195,10 @@ def _ascii_digits(text: str) -> str:
 
 
 def _number(raw: str) -> float:
-    return float(_ascii_digits(raw).replace(",", "."))
+    raw = _ascii_digits(raw)
+    if _GROUPED.fullmatch(raw):
+        return float(re.sub(r"[.,]", "", raw))
+    return float(raw.replace(",", "."))
 
 
 def _fact_number(value: object) -> float | None:
@@ -193,6 +217,10 @@ def _unit(raw: str) -> str:
         return "MAD"
     if folded.startswith("euro"):
         return "EUR"
+    if folded.startswith("dollar") or folded == "$":
+        return "USD"
+    if folded.startswith("pound") or folded == "£":
+        return "GBP"
     return _UNIT_OF.get(folded, folded.upper())
 
 
@@ -320,8 +348,11 @@ def _link_findings(text: str, pack: EvidencePack) -> list[Finding]:
     for url in _URL.findall(text):
         if not _url_allowed(url, allowed):
             findings.append(Finding("url_not_allowed", "a link that is not a source card"))
+    rest = _URL.sub(" ", text)
+    if _OTHER_LINK.search(rest) or _IP.search(rest):
+        findings.append(Finding("url_not_allowed", "a link scheme or address that is not a card"))
     hosts = _allowed_hosts(allowed)
-    for match in _DOMAIN.finditer(_URL.sub(" ", text)):
+    for match in _DOMAIN.finditer(rest):
         if match.group().split("/", 1)[0].lower() not in hosts:
             findings.append(Finding("url_not_allowed", "a domain that is not a source card"))
     return findings

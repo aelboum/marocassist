@@ -61,8 +61,12 @@ jobs:
         run: |
           if [ -f ../knowledge/manifest.json ]; then
             uv run --locked python -m marocassist.knowledge.loader --dry-run ../knowledge
+          elif find ../knowledge -type f ! -name README.md ! -name content.schema.json | grep -q .; then
+            # Content without a manifest must not skip the check (security review P3-R5).
+            echo "knowledge/ has content but no manifest.json" >&2
+            exit 1
           else
-            echo "knowledge/ has no manifest.json yet; nothing to check"
+            echo "knowledge/ has no content yet; nothing to check"
           fi
 
   integration:

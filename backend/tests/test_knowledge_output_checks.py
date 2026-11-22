@@ -183,10 +183,43 @@ def test_arabic_indic_digits_are_compared_as_numbers() -> None:
         ("Zie https://example.com voor meer informatie.", False),
         ("Kijk op www.example-hulp.nl voor meer informatie.", False),
         ("Kijk op example-hulp.nl voor meer informatie.", False),
+        # Security review P3-R1: any top-level label, other schemes, addresses.
+        ("Stuur een bericht via wa.me/31600000000 voor hulp.", False),
+        ("Kijk op bit.ly/paspoort voor meer informatie.", False),
+        ("Kijk op t.me/consulaat voor meer informatie.", False),
+        ("Kijk op hulp.xyz voor meer informatie.", False),
+        ("Kijk op 203.0.113.7 voor meer informatie.", False),
+        ("Kijk op ftp://example.com/x voor meer informatie.", False),
+        ("Klik op javascript:alert(1) voor meer informatie.", False),
+        ("Kijk op //example.com voor meer informatie.", False),
+        ("Data: de leges staan op de officiele pagina.", True),
+        ("De leges zijn 300.00 MAD [F1].", True),
     ],
 )
 def test_only_source_card_links_are_allowed(answer: str, ok: bool) -> None:
     assert ("url_not_allowed" not in oc.check_answer(answer, _pack()).codes) is ok
+
+
+def test_a_homoglyph_domain_is_blocked() -> None:
+    # "consulat.ma" with a Cyrillic "a" (U+0430): not a source card host.
+    answer = "Kijk op www.consulаt.ma/fr voor meer informatie."
+    check = oc.check_answer(answer, _pack())
+    assert check.blocked
+    assert {"url_not_allowed", "hidden_characters"} & check.codes
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        "De leges zijn 300,000 MAD [F1].",  # P3-R2: thousands, not 300
+        "De leges zijn 300.000 MAD [F1].",
+        "De leges zijn $300 [F1].",  # P3-R3: another currency
+        "De leges zijn 300 dollar [F1].",
+        "De leges zijn £300 [F1].",
+    ],
+)
+def test_grouped_numbers_and_other_currencies_do_not_pass(answer: str) -> None:
+    assert "fact_mismatch" in oc.check_answer(answer, _pack()).codes
 
 
 @pytest.mark.parametrize(

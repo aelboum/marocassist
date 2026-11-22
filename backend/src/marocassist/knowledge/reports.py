@@ -19,12 +19,22 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
-from saas_os.infra.db import IntegrityError, Session, select, tenant_session_scope, update
+from saas_os.infra.db import (
+    IntegrityError,
+    Session,
+    acquire_tenant_advisory_lock,
+    select,
+    tenant_session_scope,
+    update,
+)
 
 from marocassist.knowledge.models import KnowledgeReport, KnowledgeReportCount
 
 ReasonCode = Literal["outdated", "incorrect", "broken_link", "other"]
 DEDUPE_HOURS = 24
+# Serialises the check-then-insert below per tenant, so two identical
+# concurrent reports cannot both be counted (security review P3-R6).
+_REPORT_LOCK = "marocassist.knowledge.report"
 
 
 @dataclass(frozen=True)
@@ -37,6 +47,7 @@ class ReportResult:
 def create_report(tenant_id: uuid.UUID, item_id: str, reason_code: ReasonCode) -> ReportResult:
     since = datetime.now(UTC) - timedelta(hours=DEDUPE_HOURS)
     with tenant_session_scope(tenant_id) as session:
+        acquire_tenant_advisory_lock(session, tenant_id, _REPORT_LOCK)
         existing = session.execute(
             select(KnowledgeReport)
             .where(
