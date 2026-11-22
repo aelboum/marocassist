@@ -1,0 +1,84 @@
+{
+  "item_id": "fixture.eval.national-id-card",
+  "kind": "procedure",
+  "rights_class": "R3",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "national_id"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-04-30",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Nationale identiteitskaart (CNIE) aanvragen",
+      "body": "De elektronische nationale identiteitskaart vraagt u aan bij het consulaat. Maak een afspraak en neem uw geboorteakte en een bewijs van consulaire inschrijving mee. De kaart wordt na enkele weken geleverd.",
+      "keywords": [
+        "identiteitskaart",
+        "CNIE",
+        "ID-kaart"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Demander la carte nationale d'identité électronique",
+      "body": "La carte nationale d'identité électronique se demande au consulat sur rendez-vous. Apportez votre acte de naissance et une preuve d'immatriculation consulaire.",
+      "keywords": [
+        "carte nationale",
+        "CNIE",
+        "carte d'identité"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "طلب البطاقة الوطنية للتعريف الإلكترونية",
+      "body": "تطلب البطاقة الوطنية للتعريف الإلكترونية من القنصلية بعد حجز موعد. أحضر عقد الازدياد وشهادة التسجيل القنصلي.",
+      "keywords": [
+        "البطاقة الوطنية",
+        "التعريف"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "Applying for the national electronic identity card",
+      "body": "You apply for the national electronic identity card at the consulate by appointment. Bring your birth certificate and proof of consular registration.",
+      "keywords": [
+        "identity card",
+        "CNIE",
+        "ID card"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

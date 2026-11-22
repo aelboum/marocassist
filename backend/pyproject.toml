@@ -62,6 +62,7 @@ ignore = [
 "tests/test_knowledge_search_integration.py" = ["S608"]
 "tests/test_knowledge_api_integration.py" = ["S608"]
 "tests/test_knowledge_review_integration.py" = ["S608"]
+"tests/test_knowledge_eval_integration.py" = ["S608"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -144,6 +145,7 @@ source_modules = [
     "marocassist.knowledge.catalogue",
     "marocassist.knowledge.routes",
     "marocassist.knowledge.review",
+    "marocassist.knowledge.evaluation",
 ]
 forbidden_modules = ["marocassist.knowledge.loader"]
 

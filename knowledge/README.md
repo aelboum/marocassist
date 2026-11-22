@@ -42,9 +42,12 @@ uv run python -m marocassist.knowledge.loader --dry-run ../knowledge   # what CI
 uv run python -m marocassist.knowledge.loader ../knowledge             # at deploy
 ```
 
-The dry run needs no database. It checks shapes, the sanitiser (bidi and
-zero-width characters, markup, URLs in text, prompt delimiters, injection
-phrases), the personal-data scan, the domain allow-list, rights classes,
+The dry run needs no database. It checks shapes, the sanitiser (bidi
+controls and marks, zero-width and other invisible characters, markup and
+markdown comments, URLs in text, words mixing Latin, Cyrillic or Greek
+letters, prompt delimiters, injection phrases in five languages; see
+backend/tests/fixtures/knowledge/redteam.json for what each rule catches),
+the personal-data scan, the domain allow-list, rights classes,
 four-eyes review (author is not the approver; approver is a registered
 reviewer), review periods and citations. Any problem refuses the whole
 bundle.

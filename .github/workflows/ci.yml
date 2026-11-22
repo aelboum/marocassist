@@ -112,7 +112,7 @@ jobs:
       - name: Install exactly the locked environment
         working-directory: backend
         run: uv sync --locked
-      - name: Integration tests (migrations, role guard, isolation, pairing, audit)
+      - name: Integration tests (migrations, role guard, isolation, pairing, audit, knowledge golden set)
         working-directory: backend
         run: uv run --locked pytest -m integration -p no:cacheprovider
 

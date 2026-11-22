@@ -1,0 +1,82 @@
+{
+  "item_id": "fixture.eval.kafala",
+  "kind": "explanation",
+  "rights_class": "R1",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "kafala"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-10-31",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Wat is kafala?",
+      "body": "Kafala is een Marokkaanse vorm van zorg voor een kind waarbij de afstamming niet verandert. Het is geen adoptie. Voor erkenning in Nederland gelden aparte regels; lees de officiële informatie.",
+      "keywords": [
+        "kafala",
+        "pleegzorg",
+        "adoptie"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Qu'est-ce que la kafala ?",
+      "body": "La kafala est une prise en charge d'un enfant en droit marocain, sans changement de filiation. Ce n'est pas une adoption.",
+      "keywords": [
+        "kafala",
+        "prise en charge"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "ما هي الكفالة؟",
+      "body": "الكفالة هي التكفل بطفل في القانون المغربي دون تغيير النسب. وهي ليست تبنيا.",
+      "keywords": [
+        "كفالة",
+        "التكفل"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "What is kafala?",
+      "body": "Kafala is a form of care for a child under Moroccan law that does not change the child's parentage. It is not an adoption.",
+      "keywords": [
+        "kafala",
+        "guardianship"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

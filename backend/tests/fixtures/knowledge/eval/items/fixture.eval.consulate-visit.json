@@ -1,0 +1,91 @@
+{
+  "item_id": "fixture.eval.consulate-visit",
+  "kind": "explanation",
+  "rights_class": "R1",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "consulate"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-10-31",
+  "citations": [
+    {
+      "source_id": "src-fixture-rijksoverheid-consulates"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Het consulaat-generaal Rotterdam bezoeken",
+      "body": "Het consulaat-generaal Rotterdam is gevestigd in Schiedam, niet in Rotterdam zelf. Maak vooraf een afspraak en controleer het adres op de officiële pagina.",
+      "keywords": [
+        "consulaat",
+        "Rotterdam",
+        "Schiedam",
+        "adres"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Se rendre au consulat général de Rotterdam",
+      "body": "Le consulat général de Rotterdam se trouve à Schiedam. Prenez rendez-vous et vérifiez l'adresse sur la page officielle.",
+      "keywords": [
+        "consulat",
+        "Rotterdam",
+        "Schiedam",
+        "adresse"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "زيارة القنصلية العامة في روتردام",
+      "body": "توجد القنصلية العامة في روتردام بمدينة سخيدام. احجز موعدا وتحقق من العنوان في الصفحة الرسمية.",
+      "keywords": [
+        "القنصلية",
+        "روتردام",
+        "العنوان"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "Visiting the consulate general in Rotterdam",
+      "body": "The consulate general of Rotterdam is located in Schiedam. Book an appointment and check the address on the official page.",
+      "keywords": [
+        "consulate",
+        "Rotterdam",
+        "Schiedam",
+        "address"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  },
+  "consulate_scope": [
+    "nl-rotterdam"
+  ]
+}

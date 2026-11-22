@@ -1,0 +1,86 @@
+{
+  "item_id": "fixture.eval.marriage-registration",
+  "kind": "procedure",
+  "rights_class": "R3",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "marriage"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-04-30",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Een huwelijk laten inschrijven (transcriptie)",
+      "body": "Bent u in Nederland getrouwd? Laat het huwelijk inschrijven bij het consulaat zodat het in Marokko erkend wordt. Neem de Nederlandse huwelijksakte en de identiteitsbewijzen van beide partners mee.",
+      "keywords": [
+        "huwelijk",
+        "trouwen",
+        "huwelijksakte",
+        "transcriptie"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Faire transcrire son mariage",
+      "body": "Vous vous êtes marié aux Pays-Bas ? Faites transcrire le mariage au consulat pour qu'il soit reconnu au Maroc. Apportez l'acte de mariage néerlandais et les pièces d'identité des deux époux.",
+      "keywords": [
+        "mariage",
+        "transcription",
+        "acte de mariage"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "تسجيل عقد الزواج في القنصلية",
+      "body": "إذا تزوجت في هولندا، سجل عقد الزواج في القنصلية ليعترف به في المغرب. أحضر عقد الزواج الهولندي وبطاقتي الزوجين.",
+      "keywords": [
+        "زواج",
+        "عقد الزواج",
+        "توثيق"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "Registering a marriage at the consulate",
+      "body": "Did you marry in the Netherlands? Have the marriage registered at the consulate so it is recognised in Morocco. Bring the Dutch marriage certificate and the identity documents of both spouses.",
+      "keywords": [
+        "marriage",
+        "marriage certificate",
+        "wedding"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

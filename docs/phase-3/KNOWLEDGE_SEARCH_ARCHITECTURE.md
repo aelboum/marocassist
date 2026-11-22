@@ -245,6 +245,24 @@ is a later product decision (P3-D8).
 - **Process:** run in CI against a fixture corpus with no network. Report the
   results per language. The thresholds in the ADR trigger a re-evaluation of
   embeddings.
+- **Implemented in WP G:**
+  - The harness is `marocassist.knowledge.evaluation`. It runs the golden set
+    through the same catalogue functions as the API.
+  - Fixture content:
+    - the evaluation corpus `backend/tests/fixtures/knowledge/eval`: 9 items
+      in four languages, including a stale item and a withdrawn item, plus
+      8 facts covering current, expired, out-of-force, withdrawn, conflict and
+      consulate-only cases;
+    - the golden set `golden.json`: 35 questions (NL 12, FR 8, AR 9 including
+      Darija in Latin and Arabic script, EN 6) and 8 fact lookups.
+  - The integration test fails CI below recall@6 0.85 in any language, below
+    fact accuracy 1.0, or on any stale leak. It writes the per-language report
+    to the GitHub job summary.
+  - Which rows are stale is computed from the bundle, not from the code under
+    test.
+  - p95 latency is reported but not gated, because CI runners are too noisy
+    for a time limit.
+  - The editors' 150-question set will use the same format on real content.
 
 ## 9. Search quality limits (stated, not hidden)
 

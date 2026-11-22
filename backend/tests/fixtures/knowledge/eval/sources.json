@@ -1,0 +1,48 @@
+[
+  {
+    "source_id": "src-fixture-consulat-passport",
+    "title": "Fixture: passeport biometrique",
+    "official_url": "https://www.consulat.ma/fr/passeport-biometrique",
+    "publisher": "MAECAMRE",
+    "publisher_key": "maecamre",
+    "source_type": "official",
+    "country": "MA",
+    "geo_scope": "global",
+    "language": "fr",
+    "consulted_at": "2026-11-01",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-04-30",
+    "licence": "unknown",
+    "allowed_use": ["link", "cite_fact", "summary"],
+    "status": "verified",
+    "owner_reviewer": "ed-fixture-reviewer",
+    "notes": "Fixture source for tests; not real content.",
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  },
+  {
+    "source_id": "src-fixture-rijksoverheid-consulates",
+    "title": "Fixture: consulaten van Marokko in Nederland",
+    "official_url": "https://www.rijksoverheid.nl/fixture/consulaten-marokko",
+    "publisher": "Rijksoverheid",
+    "publisher_key": "rijksoverheid",
+    "source_type": "government",
+    "country": "NL",
+    "geo_scope": "country:NL",
+    "language": "nl",
+    "consulted_at": "2026-11-01",
+    "verified_at": "2026-11-01",
+    "review_due_at": "2027-04-30",
+    "licence": "unknown",
+    "allowed_use": ["link", "cite_fact"],
+    "status": "verified",
+    "review": {
+      "author": "ed-fixture-author",
+      "approver": "ed-fixture-reviewer",
+      "approved_at": "2026-11-02"
+    }
+  }
+]

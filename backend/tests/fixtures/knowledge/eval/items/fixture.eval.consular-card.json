@@ -1,0 +1,81 @@
+{
+  "item_id": "fixture.eval.consular-card",
+  "kind": "explanation",
+  "rights_class": "R1",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "consular_card"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2026-11-10",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "De consulaire kaart",
+      "body": "Met de consulaire kaart bent u ingeschreven bij uw consulaat. U vraagt de kaart aan met uw paspoort en een bewijs van woonadres.",
+      "keywords": [
+        "consulaire kaart",
+        "inschrijving"
+      ],
+      "lang_status": "published",
+      "verified_at": "2025-11-15",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2025-11-16"
+      }
+    },
+    "fr": {
+      "title": "La carte consulaire",
+      "body": "La carte consulaire atteste votre immatriculation au consulat. Elle se demande avec votre passeport et un justificatif de domicile.",
+      "keywords": [
+        "carte consulaire",
+        "immatriculation"
+      ],
+      "lang_status": "published",
+      "verified_at": "2025-11-15",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2025-11-16"
+      }
+    },
+    "ar": {
+      "title": "البطاقة القنصلية",
+      "body": "تثبت البطاقة القنصلية تسجيلك في القنصلية. تطلب بجواز السفر وشهادة السكنى.",
+      "keywords": [
+        "البطاقة القنصلية",
+        "التسجيل القنصلي"
+      ],
+      "lang_status": "published",
+      "verified_at": "2025-11-15",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2025-11-16"
+      }
+    },
+    "en": {
+      "title": "The consular card",
+      "body": "The consular card shows that you are registered at your consulate. You apply with your passport and proof of address.",
+      "keywords": [
+        "consular card",
+        "registration"
+      ],
+      "lang_status": "published",
+      "verified_at": "2025-11-15",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2025-11-16"
+      }
+    }
+  }
+}

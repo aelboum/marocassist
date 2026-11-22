@@ -1,0 +1,85 @@
+{
+  "item_id": "fixture.eval.power-of-attorney",
+  "kind": "procedure",
+  "rights_class": "R3",
+  "country_scope": [
+    "NL"
+  ],
+  "topic_keys": [
+    "power_of_attorney"
+  ],
+  "status": "published",
+  "version": 1,
+  "review_due_at": "2027-04-30",
+  "citations": [
+    {
+      "source_id": "src-fixture-consulat-passport"
+    }
+  ],
+  "texts": {
+    "nl": {
+      "title": "Een volmacht laten legaliseren",
+      "body": "Wilt u iemand in Marokko voor u laten handelen? Stel een volmacht op en laat uw handtekening legaliseren bij het consulaat. U tekent ter plaatse in het bijzijn van een medewerker.",
+      "keywords": [
+        "volmacht",
+        "legaliseren",
+        "handtekening"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "fr": {
+      "title": "Faire légaliser une procuration",
+      "body": "Vous voulez qu'une personne agisse pour vous au Maroc ? Rédigez une procuration et faites légaliser votre signature au consulat. Vous signez sur place devant un agent.",
+      "keywords": [
+        "procuration",
+        "légalisation",
+        "signature"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "ar": {
+      "title": "المصادقة على وكالة في القنصلية",
+      "body": "إذا أردت أن ينوب عنك شخص في المغرب، حرر وكالة وصادق على توقيعك في القنصلية. توقع في عين المكان أمام موظف.",
+      "keywords": [
+        "وكالة",
+        "المصادقة",
+        "توقيع"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    },
+    "en": {
+      "title": "Legalising a power of attorney",
+      "body": "Do you want someone in Morocco to act for you? Draw up a power of attorney and have your signature legalised at the consulate. You sign in person in front of an officer.",
+      "keywords": [
+        "power of attorney",
+        "legalisation",
+        "signature"
+      ],
+      "lang_status": "published",
+      "verified_at": "2026-11-01",
+      "review": {
+        "author": "ed-fixture-author",
+        "approver": "ed-fixture-reviewer",
+        "approved_at": "2026-11-02"
+      }
+    }
+  }
+}

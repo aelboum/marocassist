@@ -99,6 +99,30 @@ The review covers:
    phrasing. Expected result: the sanitiser flags them, and the evidence pack
    escapes them. With the fake provider, output checks catch planted unsafe
    answers.
+   - **Implemented in WP G** in `backend/tests/fixtures/knowledge/redteam.json`
+     and `test_knowledge_redteam.py`. It has 57 attacks:
+     - visible: EN, FR, NL, AR and Darija phrasings;
+     - hidden: zero-width, word joiner, soft hyphen, tag characters, variation
+       selectors, filler letters, line separators, HTML styling and comments,
+       markdown comments, and text from PDF layers;
+     - metadata: PDF title, EXIF description, author URL;
+     - bidi overrides, isolates and marks;
+     - Cyrillic and Greek homoglyphs;
+     - prompt delimiters (including fullwidth), URLs and XSS.
+   - Each attack must be refused by the sanitiser and by the loader in every
+     kind of text field. There are 16 benign texts in all four languages that
+     must pass.
+   - The first run found 22 gaps:
+     - FR, NL and AR phrasings beyond the original patterns;
+     - variation selectors and other invisible letters;
+     - line separators;
+     - RLM and ALM, which were refused only as generic controls;
+     - markdown comments;
+     - homoglyphs.
+
+     The sanitiser now closes all of them.
+   - The evidence-pack and output-check halves of this control arrive with
+     WP H and reuse the same fixture.
 
 ## 4. Privacy (GDPR/AVG; Moroccan law 09-08)
 

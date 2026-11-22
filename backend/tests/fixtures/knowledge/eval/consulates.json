@@ -1,0 +1,50 @@
+[
+  {
+    "code": "nl-rotterdam",
+    "country": "NL",
+    "kind": "consulate_general",
+    "active": true,
+    "attributes": [
+      {
+        "attribute": "display_name",
+        "lang": "nl",
+        "value": "Consulaat-generaal Rotterdam",
+        "source_id": "src-fixture-rijksoverheid-consulates",
+        "verified_at": "2026-11-01",
+        "review_due_at": "2027-04-30",
+        "status": "pending_review",
+        "review": {
+          "author": "ed-fixture-author",
+          "approver": "ed-fixture-reviewer",
+          "approved_at": "2026-11-02"
+        }
+      },
+      {
+        "attribute": "physical_city",
+        "value": "Schiedam",
+        "source_id": "src-fixture-rijksoverheid-consulates",
+        "verified_at": "2026-11-01",
+        "review_due_at": "2027-04-30",
+        "status": "pending_review",
+        "review": {
+          "author": "ed-fixture-author",
+          "approver": "ed-fixture-reviewer",
+          "approved_at": "2026-11-02"
+        }
+      },
+      {
+        "attribute": "address",
+        "value": {"street": "De Brauwweg 38-44", "postcode": "3125 AE", "city": "Schiedam"},
+        "source_id": "src-fixture-rijksoverheid-consulates",
+        "verified_at": "2026-11-01",
+        "review_due_at": "2027-04-30",
+        "status": "pending_review",
+        "review": {
+          "author": "ed-fixture-author",
+          "approver": "ed-fixture-reviewer",
+          "approved_at": "2026-11-02"
+        }
+      }
+    ]
+  }
+]
