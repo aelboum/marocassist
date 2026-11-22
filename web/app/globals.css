@@ -5,6 +5,8 @@
   --muted: #5b5b60;
   --accent: #0f6e5a;
   --border: #e2e2dd;
+  --notice: #b54708;
+  --notice-bg: #fffaeb;
   color-scheme: light;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif;
 }
@@ -17,6 +19,8 @@
     --muted: #a5a5ab;
     --accent: #4cc3a5;
     --border: #2d2d31;
+    --notice: #f79009;
+    --notice-bg: #2a2214;
     color-scheme: dark;
   }
 }
@@ -61,6 +65,28 @@ a { color: var(--accent); }
 .language { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); }
 .language select { font: inherit; }
 
+/* Knowledge (Phase 3). Logical properties only, so Arabic mirrors. */
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.notice {
+  margin: 8px 0; padding: 8px 12px; border-radius: 8px;
+  background: var(--notice-bg); color: var(--text); border-inline-start: 4px solid var(--notice);
+}
+.sources { margin-top: 8px; }
+.sources-title { font-size: 1rem; margin: 8px 0; }
+.source-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.source-card { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+.badge { display: inline-block; font-size: 0.75rem; padding: 0 8px; border-radius: 999px; border: 1px solid var(--border); }
+.badge-official { border-color: var(--accent); color: var(--accent); }
+.results { list-style: none; padding: 0; margin: 0; }
+.result-title { font-size: 1.125rem; margin: 0; }
+.attributes { margin: 0; display: grid; gap: 12px; }
+.attribute { display: grid; grid-template-columns: minmax(8rem, 12rem) 1fr; gap: 4px 16px; }
+.attribute dt { font-weight: 600; }
+.attribute dd { margin: 0; }
+.report { border-top: 1px solid var(--border); padding-top: 12px; }
+
 @media (max-width: 600px) {
+  .attribute { grid-template-columns: 1fr; }
   .shell-actions { margin-inline-start: 0; width: 100%; justify-content: space-between; }
 }

@@ -59,6 +59,15 @@ export function createApiClient(fetchImpl: FetchLike = (input, init) => fetch(in
   }
 
   const tenant = (tenantId: string, suffix: string) => `/v1/tenants/${encodeURIComponent(tenantId)}/${suffix}`;
+  const knowledge = (tenantId: string, suffix: string, params?: Record<string, string | string[] | null | undefined>) => {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params ?? {})) {
+      if (value === null || value === undefined || value === "") continue;
+      for (const item of Array.isArray(value) ? value : [value]) query.append(key, item);
+    }
+    const qs = query.toString();
+    return tenant(tenantId, `knowledge/${suffix}${qs ? `?${qs}` : ""}`);
+  };
 
   return {
     me: () => request<{ user_id: string }>("GET", "/auth/me"),
@@ -84,6 +93,27 @@ export function createApiClient(fetchImpl: FetchLike = (input, init) => fetch(in
     listDevices: (tenantId: string) => request<Device[]>("GET", tenant(tenantId, "copilot/devices")),
     revokeDevice: (tenantId: string, deviceId: string) =>
       request<void>("DELETE", tenant(tenantId, `copilot/devices/${encodeURIComponent(deviceId)}`)),
+    // POST so the query never appears in a URL, browser history or access log.
+    searchKnowledge: (tenantId: string, params: SearchParams) =>
+      request<SearchResponse>("POST", knowledge(tenantId, "search"), {
+        q: params.q,
+        lang: params.lang,
+        consulate: params.consulate ?? null,
+        ...(params.kinds?.length ? { kind: params.kinds } : {}),
+      }),
+    readItem: (tenantId: string, itemId: string, lang?: string) =>
+      request<KnowledgeItem>("GET", knowledge(tenantId, `items/${encodeURIComponent(itemId)}`, { lang })),
+    readFact: (tenantId: string, factKey: string, consulate?: string | null) =>
+      request<Fact>("GET", knowledge(tenantId, `facts/${encodeURIComponent(factKey)}`, { consulate })),
+    listConsulates: (tenantId: string, lang?: string) =>
+      request<Consulate[]>("GET", knowledge(tenantId, "consulates", { lang })),
+    readConsulate: (tenantId: string, code: string, lang?: string) =>
+      request<Consulate>("GET", knowledge(tenantId, `consulates/${encodeURIComponent(code)}`, { lang })),
+    reportItem: (tenantId: string, itemId: string, reasonCode: string) =>
+      request<{ report_id: string; created_at: string }>("POST", knowledge(tenantId, "reports"), {
+        item_id: itemId,
+        reason_code: reasonCode,
+      }),
   };
 }
 
@@ -117,6 +147,89 @@ export type Consent = {
 };
 export type DeletionRequest = { requested: boolean; requested_at: string | null };
 export type Device = { id: string; status: string; created_at: string; key_expires_at: string | null };
+
+// Knowledge (Phase 3), mirroring packages/contracts/openapi.json.
+export type ItemStatus = "current" | "expired" | "withdrawn";
+export type SourceCard = {
+  label: number;
+  source_id: string;
+  title: string;
+  publisher: string;
+  badge: "official" | "secondary" | "explanation";
+  scope: string;
+  verified_at: string | null;
+  status: "current" | "expired" | "withdrawn" | "unverified";
+  url: string;
+  locator: string | null;
+};
+export type SearchParams = { q: string; lang: string; consulate?: string | null; kinds?: string[] };
+export type SearchResult = {
+  item_id: string;
+  lang: string;
+  ordinal: number;
+  kind: string;
+  status: ItemStatus;
+  partial: boolean;
+  title: string;
+  heading: string | null;
+  snippet: string;
+  sources: SourceCard[];
+};
+export type SearchResponse = { langs: string[]; detected_lang: string | null; results: SearchResult[] };
+export type KnowledgeItem = {
+  item_id: string;
+  kind: string;
+  status: ItemStatus;
+  version: number;
+  review_due_at: string;
+  superseded_by: string | null;
+  country_scope: string[];
+  consulate_scope: string[];
+  lang: string | null;
+  available_langs: string[];
+  title: string | null;
+  body: string | null;
+  verified_at: string | null;
+  sources: SourceCard[];
+};
+export type FactValue = {
+  fact_id: string;
+  scope: string;
+  value: unknown;
+  unit: string | null;
+  status: "current" | "expired" | "under_review";
+  valid_from: string;
+  valid_until: string | null;
+  verified_at: string;
+  sources: SourceCard[];
+};
+export type Fact = {
+  fact_key: string;
+  consulate: string | null;
+  scope: string | null;
+  status: "current" | "expired" | "under_review" | "conflict" | null;
+  needs_consulate: boolean;
+  consulates: string[];
+  values: FactValue[];
+};
+export type ConsulateAttribute = {
+  attribute: string;
+  lang: string | null;
+  value: unknown;
+  status: "verified" | "pending_review" | "expired";
+  independently_confirmed: boolean;
+  verified_at: string;
+  source: SourceCard;
+};
+export type Consulate = {
+  code: string;
+  country: string;
+  kind: string;
+  active: boolean;
+  display_name: string | null;
+  attributes: ConsulateAttribute[];
+  missing: string[];
+};
 
 export type ApiClient = ReturnType<typeof createApiClient>;
 export const api = createApiClient();

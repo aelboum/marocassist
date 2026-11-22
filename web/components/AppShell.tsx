@@ -10,6 +10,8 @@ import { useT } from "@/lib/locale-context";
 
 export const NAV_ITEMS: ReadonlyArray<{ href: string; label: MessageKey }> = [
   { href: "/dashboard", label: "dashboard" },
+  { href: "/dashboard/knowledge", label: "knowledge" },
+  { href: "/dashboard/consulates", label: "consulates" },
   { href: "/dashboard/profile", label: "profile" },
   { href: "/dashboard/copilot", label: "copilot" },
   { href: "/dashboard/settings", label: "settings" },
