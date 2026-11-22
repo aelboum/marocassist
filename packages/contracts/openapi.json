@@ -1,6 +1,60 @@
 {
   "components": {
     "schemas": {
+      "AttributeOut": {
+        "properties": {
+          "attribute": {
+            "title": "Attribute",
+            "type": "string"
+          },
+          "independently_confirmed": {
+            "title": "Independently Confirmed",
+            "type": "boolean"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceCard"
+          },
+          "status": {
+            "enum": [
+              "verified",
+              "pending_review",
+              "expired"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "verified_at": {
+            "format": "date",
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attribute",
+          "lang",
+          "value",
+          "status",
+          "independently_confirmed",
+          "verified_at",
+          "source"
+        ],
+        "title": "AttributeOut",
+        "type": "object"
+      },
       "ConsentIn": {
         "properties": {
           "granted": {
@@ -57,6 +111,62 @@
           "current_version"
         ],
         "title": "ConsentOut",
+        "type": "object"
+      },
+      "ConsulateOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "attributes": {
+            "items": {
+              "$ref": "#/components/schemas/AttributeOut"
+            },
+            "title": "Attributes",
+            "type": "array"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "country",
+          "kind",
+          "active",
+          "display_name",
+          "attributes",
+          "missing"
+        ],
+        "title": "ConsulateOut",
         "type": "object"
       },
       "CopilotSessionOut": {
@@ -182,6 +292,159 @@
         "title": "DeviceOut",
         "type": "object"
       },
+      "FactOut": {
+        "properties": {
+          "consulate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consulate"
+          },
+          "consulates": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Consulates",
+            "type": "array"
+          },
+          "fact_key": {
+            "title": "Fact Key",
+            "type": "string"
+          },
+          "needs_consulate": {
+            "title": "Needs Consulate",
+            "type": "boolean"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "current",
+                  "expired",
+                  "under_review",
+                  "conflict"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/FactValue"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "fact_key",
+          "consulate",
+          "scope",
+          "status",
+          "needs_consulate",
+          "consulates",
+          "values"
+        ],
+        "title": "FactOut",
+        "type": "object"
+      },
+      "FactValue": {
+        "properties": {
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCard"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "expired",
+              "under_review"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "valid_from": {
+            "format": "date",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "verified_at": {
+            "format": "date",
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fact_id",
+          "scope",
+          "value",
+          "unit",
+          "status",
+          "valid_from",
+          "valid_until",
+          "verified_at",
+          "sources"
+        ],
+        "title": "FactValue",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -193,6 +456,138 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ItemOut": {
+        "properties": {
+          "available_langs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Available Langs",
+            "type": "array"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "consulate_scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Consulate Scope",
+            "type": "array"
+          },
+          "country_scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Country Scope",
+            "type": "array"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          },
+          "review_due_at": {
+            "format": "date",
+            "title": "Review Due At",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCard"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "expired",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "superseded_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded By"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "item_id",
+          "kind",
+          "status",
+          "version",
+          "review_due_at",
+          "superseded_by",
+          "country_scope",
+          "consulate_scope",
+          "lang",
+          "available_langs",
+          "title",
+          "body",
+          "verified_at",
+          "sources"
+        ],
+        "title": "ItemOut",
         "type": "object"
       },
       "OnboardingIn": {
@@ -408,6 +803,161 @@
         "title": "ProfileOut",
         "type": "object"
       },
+      "ReportIn": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "pattern": "^[a-z0-9][a-z0-9.-]{1,79}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "reason_code": {
+            "enum": [
+              "outdated",
+              "incorrect",
+              "broken_link",
+              "other"
+            ],
+            "title": "Reason Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "reason_code"
+        ],
+        "title": "ReportIn",
+        "type": "object"
+      },
+      "ReportOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "report_id": {
+            "format": "uuid",
+            "title": "Report Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_id",
+          "created_at"
+        ],
+        "title": "ReportOut",
+        "type": "object"
+      },
+      "SearchOut": {
+        "properties": {
+          "detected_lang": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detected Lang"
+          },
+          "langs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Langs",
+            "type": "array"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResultOut"
+            },
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": [
+          "langs",
+          "detected_lang",
+          "results"
+        ],
+        "title": "SearchOut",
+        "type": "object"
+      },
+      "SearchResultOut": {
+        "properties": {
+          "heading": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heading"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "lang": {
+            "title": "Lang",
+            "type": "string"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "partial": {
+            "title": "Partial",
+            "type": "boolean"
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCard"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "expired",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "lang",
+          "ordinal",
+          "kind",
+          "status",
+          "partial",
+          "title",
+          "heading",
+          "snippet",
+          "sources"
+        ],
+        "title": "SearchResultOut",
+        "type": "object"
+      },
       "SettingsResponse": {
         "properties": {
           "locale": {
@@ -438,6 +988,89 @@
           "locale"
         ],
         "title": "SettingsUpdate",
+        "type": "object"
+      },
+      "SourceCard": {
+        "properties": {
+          "badge": {
+            "enum": [
+              "official",
+              "secondary",
+              "explanation"
+            ],
+            "title": "Badge",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "integer"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "current",
+              "expired",
+              "withdrawn",
+              "unverified"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "label",
+          "source_id",
+          "title",
+          "publisher",
+          "badge",
+          "scope",
+          "verified_at",
+          "status",
+          "url"
+        ],
+        "title": "SourceCard",
         "type": "object"
       },
       "ValidationError": {
@@ -1383,6 +2016,555 @@
         "summary": "Read Copilot Session",
         "tags": [
           "copilot"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/knowledge/consulates": {
+      "get": {
+        "operationId": "read_consulates_v1_tenants__tenant_id__knowledge_consulates_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "nl",
+                    "fr",
+                    "ar",
+                    "en"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConsulateOut"
+                  },
+                  "title": "Response Read Consulates V1 Tenants  Tenant Id  Knowledge Consulates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Consulates",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/knowledge/consulates/{code}": {
+      "get": {
+        "operationId": "read_consulate_v1_tenants__tenant_id__knowledge_consulates__code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z0-9-]{2,32}$",
+              "title": "Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "nl",
+                    "fr",
+                    "ar",
+                    "en"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsulateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Consulate",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/knowledge/facts/{fact_key}": {
+      "get": {
+        "operationId": "read_fact_v1_tenants__tenant_id__knowledge_facts__fact_key__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fact_key",
+            "required": true,
+            "schema": {
+              "maxLength": 120,
+              "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+              "title": "Fact Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consulate",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9-]{2,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consulate"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Fact",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/knowledge/items/{item_id}": {
+      "get": {
+        "operationId": "read_item_v1_tenants__tenant_id__knowledge_items__item_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z0-9][a-z0-9.-]{1,79}$",
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "nl",
+                    "fr",
+                    "ar",
+                    "en"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Item",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/knowledge/reports": {
+      "post": {
+        "operationId": "create_report_v1_tenants__tenant_id__knowledge_reports_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Report",
+        "tags": [
+          "knowledge"
+        ]
+      }
+    },
+    "/v1/tenants/{tenant_id}/knowledge/search": {
+      "get": {
+        "operationId": "search_v1_tenants__tenant_id__knowledge_search_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 1000,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "default": "nl",
+              "enum": [
+                "nl",
+                "fr",
+                "ar",
+                "en"
+              ],
+              "title": "Lang",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "consulate",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9-]{2,32}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Consulate"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "procedure",
+                      "explanation",
+                      "faq"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "knowledge"
         ]
       }
     },

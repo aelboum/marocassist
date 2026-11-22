@@ -1,9 +1,11 @@
 """The database side of knowledge search (Phase 3 WP C).
 
 The only runtime module allowed to import SQLAlchemy, and only `func`
-(tests/test_unit.py checks this with the AST): it calls the two SQL
-functions from migration 0003, `knowledge_search()` and
-`knowledge_expand_terms()`, with bound parameters. It never builds SQL text.
+(tests/test_unit.py checks this with the AST): it calls the SQL functions
+of migration 0003 with bound parameters and never builds SQL text. Search
+uses `knowledge_search()` and `knowledge_expand_terms()`; the catalogue
+(WP D) reads JSON documents from `knowledge_items()`, `knowledge_facts()`
+and `knowledge_consulates()`.
 
 Every statement runs under the application role, in a transaction whose
 statements are bounded by a 200 ms timeout (security review T-6). A timeout
@@ -40,6 +42,7 @@ _SEARCH_COLUMNS = (
     "review_due_at",
     "source_rank",
     "rank",
+    "body",
 )
 
 
@@ -58,6 +61,7 @@ class ChunkHit:
     review_due_at: date
     source_rank: int
     rank: float
+    body: str = ""
 
 
 @contextmanager
@@ -121,6 +125,37 @@ def search_chunks(
             review_due_at=row.review_due_at,
             source_rank=int(row.source_rank),
             rank=float(row.rank),
+            body=row.body or "",
         )
         for row in rows
     ]
+
+
+# --- Catalogue reads (WP D) -------------------------------------------------------
+
+
+def _documents(value: Any) -> list[dict[str, Any]]:
+    return [doc for doc in (value or []) if isinstance(doc, dict)]
+
+
+def fetch_items(session: Session, item_ids: Sequence[str]) -> list[dict[str, Any]]:
+    """Items with their published texts and cited sources (at most 20)."""
+    if not item_ids:
+        return []
+    return _documents(
+        session.execute(select(func.marocassist.knowledge_items(list(item_ids)))).scalar_one()
+    )
+
+
+def fetch_facts(session: Session, fact_key: str) -> list[dict[str, Any]]:
+    """Every non-withdrawn fact row for one key, in all scopes (at most 50)."""
+    return _documents(
+        session.execute(select(func.marocassist.knowledge_facts(fact_key))).scalar_one()
+    )
+
+
+def fetch_consulates(session: Session, code: str | None = None) -> list[dict[str, Any]]:
+    """Consulates with their non-withdrawn attributes; one code or all."""
+    return _documents(
+        session.execute(select(func.marocassist.knowledge_consulates(code))).scalar_one()
+    )

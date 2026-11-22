@@ -79,9 +79,9 @@ def test_only_migrations_import_sqlalchemy_or_psycopg() -> None:
 
 
 def test_fts_uses_only_sqlalchemy_func() -> None:
-    """The one runtime SQLAlchemy exception (ADR-0007) may only call the two
-    search SQL functions through `sqlalchemy.func`: no other name, no plain
-    import."""
+    """The one runtime SQLAlchemy exception (ADR-0007) may only call the
+    knowledge SQL functions of migration 0003 through `sqlalchemy.func`: no
+    other name, no plain import."""
     tree = ast.parse((SRC / "knowledge" / "fts.py").read_text(encoding="utf-8"))
     imported: list[tuple[str, str]] = []
     for node in ast.walk(tree):
@@ -108,7 +108,13 @@ def test_fts_uses_only_sqlalchemy_func() -> None:
         and node.value.value.id == "func"
     }
     assert direct == {"marocassist"}
-    assert chained == {"knowledge_search", "knowledge_expand_terms"}
+    assert chained == {
+        "knowledge_search",
+        "knowledge_expand_terms",
+        "knowledge_items",
+        "knowledge_facts",
+        "knowledge_consulates",
+    }
 
 
 def test_no_raw_sql_helpers_in_product_code() -> None:
@@ -148,7 +154,7 @@ def test_only_the_copilot_session_route_accepts_api_keys(app: FastAPI) -> None:
     opt_in = re.compile(r"require_permission\([^)]*api_key=True")
     source = (SRC / "copilot" / "routes.py").read_text(encoding="utf-8")
     assert len(opt_in.findall(source)) == 1
-    for other in ("accounts/routes.py", "privacy/routes.py"):
+    for other in ("accounts/routes.py", "privacy/routes.py", "knowledge/routes.py"):
         assert "api_key=True" not in (SRC / other).read_text(encoding="utf-8")
 
 
@@ -197,11 +203,14 @@ def test_every_product_route_refuses_missing_credentials(app: FastAPI) -> None:
         concrete = path.replace("{tenant_id}", str(uuid.uuid4()))
         concrete = concrete.replace("{device_id}", str(uuid.uuid4()))
         concrete = concrete.replace("{purpose}", "product_emails")
+        concrete = concrete.replace("{item_id}", "fixture.passport-renewal")
+        concrete = concrete.replace("{fact_key}", "fee.passport_renewal.adult")
+        concrete = concrete.replace("{code}", "nl-rotterdam")
         for method in operations:
             response = client.request(method.upper(), concrete, json={})
             assert response.status_code == 401, (method, path, response.status_code)
             checked += 1
-    assert checked >= 17
+    assert checked >= 23
 
 
 def _handler_app() -> FastAPI:
@@ -302,7 +311,7 @@ def test_owner_role_holds_every_product_permission_but_not_device_use() -> None:
     assert (COPILOT, USE) in owner  # the owner may test the session route
 
 
-def test_phase_2_permissions_reach_existing_tenants_through_a_grant_migration() -> None:
+def test_later_permissions_reach_existing_tenants_through_a_grant_migration() -> None:
     from saas_os.core.permission_grants import validate_permission_grant_migrations
 
     from marocassist.permissions import (
@@ -310,6 +319,7 @@ def test_phase_2_permissions_reach_existing_tenants_through_a_grant_migration() 
         OWNER_ROLE,
         PERMISSION_GRANT_MIGRATIONS,
         PHASE_2_PERMISSIONS,
+        PHASE_3_PERMISSIONS,
     )
 
     validate_permission_grant_migrations(PERMISSION_GRANT_MIGRATIONS, namespace=GRANT_NAMESPACE)
@@ -319,7 +329,12 @@ def test_phase_2_permissions_reach_existing_tenants_through_a_grant_migration() 
         if migration.role_name == OWNER_ROLE
         for permission in migration.permissions
     }
-    assert set(PHASE_2_PERMISSIONS) <= granted
+    assert set(PHASE_2_PERMISSIONS) | set(PHASE_3_PERMISSIONS) <= granted
+    # Applied migrations are never edited (append-only).
+    assert [m.id for m in PERMISSION_GRANT_MIGRATIONS] == [
+        "0001_owner_profile_consent_account",
+        "0002_owner_knowledge",
+    ]
 
 
 def test_personal_tenant_name_is_stable_and_opaque() -> None:

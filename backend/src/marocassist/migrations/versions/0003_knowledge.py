@@ -82,6 +82,15 @@ _ID_RE = r"^[a-z0-9][a-z0-9.-]{1,79}$"
 _CONSULATE_RE = r"^[a-z0-9-]{2,32}$"
 _SEARCH_SIGNATURE = "text, text[], text, text, text[], integer"
 _EXPAND_SIGNATURE = "text[], text[]"
+# Catalogue reads (WP D) return JSON documents, so the application reads
+# text arrays and JSONB without ORM column types SaaS-OS does not provide.
+MAX_CATALOGUE_ITEMS = 20
+MAX_FACT_ROWS = 50
+CATALOGUE_FUNCTIONS: tuple[str, ...] = (
+    "knowledge_items(text[])",
+    "knowledge_facts(text)",
+    "knowledge_consulates(text)",
+)
 
 
 def arabic_translate_args() -> tuple[str, str]:
@@ -200,7 +209,8 @@ def _search_function() -> str:
         status text,
         review_due_at date,
         source_rank integer,
-        rank real
+        rank real,
+        body text
     )
     LANGUAGE sql STABLE PARALLEL SAFE
     SET search_path = pg_catalog
@@ -210,7 +220,7 @@ def _search_function() -> str:
         ),
         candidates AS (
             SELECT
-                c.item_id, c.lang, c.ordinal, c.heading, i.kind,
+                c.item_id, c.lang, c.ordinal, c.heading, c.body, i.kind,
                 CASE WHEN i.status = 'published' AND i.review_due_at < CURRENT_DATE
                      THEN 'expired' ELSE i.status END AS status,
                 i.review_due_at,
@@ -234,7 +244,7 @@ def _search_function() -> str:
               AND (p_kinds IS NULL OR i.kind = ANY (p_kinds))
         ),
         hits AS (
-            SELECT x.item_id, x.lang, x.ordinal, x.heading, x.kind, x.status,
+            SELECT x.item_id, x.lang, x.ordinal, x.heading, x.body, x.kind, x.status,
                    x.review_due_at,
                    (pg_catalog.ts_rank_cd(x.tsv, x.tq)
                     + 0.5 * pg_catalog.ts_rank_cd(x.tsv_simple, x.sq))::real AS chunk_rank,
@@ -264,7 +274,7 @@ def _search_function() -> str:
             FROM hits h
         )
         SELECT r.item_id, r.lang, r.ordinal, r.heading, r.kind, r.status,
-               r.review_due_at, r.source_rank, r.weighted_rank
+               r.review_due_at, r.source_rank, r.weighted_rank, r.body
         FROM ranked r
         WHERE r.per_item <= {MAX_CHUNKS_PER_ITEM}
         ORDER BY r.weighted_rank DESC, r.item_id, r.lang, r.ordinal
@@ -308,6 +318,104 @@ def _expand_terms_function() -> str:
         LIMIT {MAX_EXPANSIONS}
     $fn$
     """
+
+
+def _source_json(alias: str) -> str:
+    """The source-card fields of a `knowledge_sources` row. Editorial-only
+    fields (licence evidence, content hash) are not returned."""
+    return f"""jsonb_build_object(
+        'source_id', {alias}.source_id, 'title', {alias}.title,
+        'publisher', {alias}.publisher, 'source_type', {alias}.source_type,
+        'official_url', {alias}.official_url, 'geo_scope', {alias}.geo_scope,
+        'language', {alias}.language, 'verified_at', {alias}.verified_at,
+        'review_due_at', {alias}.review_due_at, 'valid_until', {alias}.valid_until,
+        'status', {alias}.status, 'allowed_use', to_jsonb({alias}.allowed_use))"""
+
+
+def _cited_sources(target: str, key: str) -> str:
+    """The sources cited by one item or fact, in citation order, each with
+    its locator."""
+    s = _SCHEMA
+    return f"""coalesce((
+        SELECT jsonb_agg({_source_json("src")} || jsonb_build_object('locator', ci.locator)
+                         ORDER BY ci.citation_id)
+        FROM {s}.knowledge_citations ci
+        JOIN {s}.knowledge_sources src ON src.source_id = ci.source_id
+        WHERE ci.{target}_id = {key}
+    ), '[]'::jsonb)"""
+
+
+def _catalogue_functions() -> list[str]:
+    """Read-only catalogue functions (WP D). Each returns one JSON document
+    and caps its own output. Status at read time (expired, conflict) is
+    computed by `knowledge.catalogue`, which is unit-tested with a fixed
+    date. Withdrawn content comes back only as a stub: a withdrawn item has
+    no text, and withdrawn facts and consulate attributes are left out."""
+    s = _SCHEMA
+    header = "RETURNS jsonb LANGUAGE sql STABLE PARALLEL SAFE SET search_path = pg_catalog"
+    return [
+        f"""
+        CREATE FUNCTION {s}.knowledge_items(p_item_ids text[]) {header}
+        AS $fn$
+            SELECT coalesce(jsonb_agg(jsonb_build_object(
+                'item_id', i.item_id, 'kind', i.kind, 'status', i.status,
+                'version', i.version, 'review_due_at', i.review_due_at,
+                'superseded_by', i.superseded_by,
+                'country_scope', to_jsonb(i.country_scope),
+                'consulate_scope', to_jsonb(i.consulate_scope),
+                'texts', CASE WHEN i.status = 'withdrawn' THEN '[]'::jsonb ELSE coalesce((
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'lang', t.lang, 'title', t.title, 'body', t.body,
+                        'verified_at', t.verified_at) ORDER BY t.lang)
+                    FROM {s}.knowledge_item_texts t
+                    WHERE t.item_id = i.item_id AND t.lang_status = 'published'
+                ), '[]'::jsonb) END,
+                'sources', {_cited_sources("item", "i.item_id")}
+            ) ORDER BY i.item_id), '[]'::jsonb)
+            FROM {s}.knowledge_items i
+            WHERE i.item_id = ANY (p_item_ids[1:{MAX_CATALOGUE_ITEMS}])
+        $fn$
+        """,
+        f"""
+        CREATE FUNCTION {s}.knowledge_facts(p_fact_key text) {header}
+        AS $fn$
+            SELECT coalesce(jsonb_agg(x.doc ORDER BY x.scope, x.fact_id), '[]'::jsonb)
+            FROM (
+                SELECT f.fact_id, f.scope, jsonb_build_object(
+                    'fact_id', f.fact_id, 'fact_key', f.fact_key, 'scope', f.scope,
+                    'value', f.value, 'unit', f.unit, 'valid_from', f.valid_from,
+                    'valid_until', f.valid_until, 'status', f.status,
+                    'verified_at', f.verified_at, 'review_due_at', f.review_due_at,
+                    'sources', {_cited_sources("fact", "f.fact_id")}
+                ) AS doc
+                FROM {s}.knowledge_facts f
+                WHERE f.fact_key = p_fact_key AND f.status <> 'withdrawn'
+                ORDER BY f.scope, f.fact_id
+                LIMIT {MAX_FACT_ROWS}
+            ) x
+        $fn$
+        """,
+        f"""
+        CREATE FUNCTION {s}.knowledge_consulates(p_code text DEFAULT NULL) {header}
+        AS $fn$
+            SELECT coalesce(jsonb_agg(jsonb_build_object(
+                'code', c.code, 'country', c.country, 'kind', c.kind, 'active', c.active,
+                'attributes', coalesce((
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'attribute', a.attribute, 'lang', a.lang, 'value', a.value,
+                        'verified_at', a.verified_at, 'review_due_at', a.review_due_at,
+                        'status', a.status, 'source', {_source_json("src")}
+                    ) ORDER BY a.attribute, a.lang)
+                    FROM {s}.consulate_attributes a
+                    JOIN {s}.knowledge_sources src ON src.source_id = a.source_id
+                    WHERE a.code = c.code AND a.status <> 'withdrawn'
+                ), '[]'::jsonb)
+            ) ORDER BY c.code), '[]'::jsonb)
+            FROM {s}.consulates c
+            WHERE p_code IS NULL OR c.code = p_code
+        $fn$
+        """,
+    ]
 
 
 def _date(name: str, *, nullable: bool = True) -> sa.Column:  # type: ignore[type-arg]
@@ -742,6 +850,8 @@ def upgrade() -> None:
     _create_tenant_tables()
     op.execute(_search_function())
     op.execute(_expand_terms_function())
+    for statement in _catalogue_functions():
+        op.execute(statement)
 
     # T-1: SELECT only on global knowledge, for the application role.
     for table in GLOBAL_TABLES:
@@ -751,6 +861,7 @@ def upgrade() -> None:
     for function in (
         f"{_SCHEMA}.knowledge_search({_SEARCH_SIGNATURE})",
         f"{_SCHEMA}.knowledge_expand_terms({_EXPAND_SIGNATURE})",
+        *(f"{_SCHEMA}.{signature}" for signature in CATALOGUE_FUNCTIONS),
     ):
         op.execute(f"REVOKE ALL ON FUNCTION {function} FROM PUBLIC")
         op.execute(f'GRANT EXECUTE ON FUNCTION {function} TO "{app_role}"')
@@ -761,6 +872,8 @@ def downgrade() -> None:
     s = _SCHEMA
     op.execute(f"DROP FUNCTION IF EXISTS {s}.knowledge_search({_SEARCH_SIGNATURE})")
     op.execute(f"DROP FUNCTION IF EXISTS {s}.knowledge_expand_terms({_EXPAND_SIGNATURE})")
+    for signature in CATALOGUE_FUNCTIONS:
+        op.execute(f"DROP FUNCTION IF EXISTS {s}.{signature}")
     for table in (*TENANT_TABLES, *reversed(GLOBAL_TABLES)):
         op.execute(f'REVOKE ALL ON {s}.{table} FROM "{app_role}"')
         op.drop_table(table, schema=s)
