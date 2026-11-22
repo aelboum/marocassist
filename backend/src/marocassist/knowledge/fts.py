@@ -5,7 +5,8 @@ The only runtime module allowed to import SQLAlchemy, and only `func`
 of migration 0003 with bound parameters and never builds SQL text. Search
 uses `knowledge_search()` and `knowledge_expand_terms()`; the catalogue
 (WP D) reads JSON documents from `knowledge_items()`, `knowledge_facts()`
-and `knowledge_consulates()`.
+and `knowledge_consulates()`; the daily review (WP F) reads
+`knowledge_review_snapshot()`.
 
 Every statement runs under the application role, in a transaction whose
 statements are bounded by a 200 ms timeout (security review T-6). A timeout
@@ -159,3 +160,10 @@ def fetch_consulates(session: Session, code: str | None = None) -> list[dict[str
     return _documents(
         session.execute(select(func.marocassist.knowledge_consulates(code))).scalar_one()
     )
+
+
+def fetch_review_snapshot(session: Session, until: date) -> dict[str, Any]:
+    """Ids, statuses and dates of what is due for review by `until`, and
+    every non-withdrawn fact (for conflicts)."""
+    value = session.execute(select(func.marocassist.knowledge_review_snapshot(until))).scalar_one()
+    return value if isinstance(value, dict) else {}

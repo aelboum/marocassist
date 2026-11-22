@@ -55,8 +55,8 @@ def _int_setting(name: str, default: int, minimum: int, maximum: int) -> int:
 
 def editorial_tenant_id() -> uuid.UUID:
     """The editorial tenant that receives the publishing audit rows
-    (decision P3-D10). Required by the knowledge loader only; the running
-    app never reads it."""
+    (decision P3-D10) and the daily editor review report. Read by the
+    knowledge loader and the worker's review job; the API never reads it."""
     name = "MAROCASSIST_EDITORIAL_TENANT_ID"
     raw = os.environ.get(name, "").strip()
     if not raw:

@@ -114,6 +114,7 @@ def test_fts_uses_only_sqlalchemy_func() -> None:
         "knowledge_items",
         "knowledge_facts",
         "knowledge_consulates",
+        "knowledge_review_snapshot",
     }
 
 

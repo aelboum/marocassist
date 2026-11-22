@@ -5,18 +5,23 @@ A report stores the item id and a reason code only: no free text, no
 user id (the tenant is the user's personal workspace). The same report
 for the same item and reason within `DEDUPE_HOURS` is returned instead of
 stored again, so repeated clicks do not inflate the editor's queue.
+
+Each new report also adds one to the anonymous counter
+`knowledge_report_counts` (item, reason, UTC day), in the same
+transaction. The daily editor review report reads only that counter, so it
+never needs to read across tenants.
 """
 
 from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Literal
 
-from saas_os.infra.db import select, tenant_session_scope
+from saas_os.infra.db import IntegrityError, Session, select, tenant_session_scope, update
 
-from marocassist.knowledge.models import KnowledgeReport
+from marocassist.knowledge.models import KnowledgeReport, KnowledgeReportCount
 
 ReasonCode = Literal["outdated", "incorrect", "broken_link", "other"]
 DEDUPE_HOURS = 24
@@ -53,8 +58,38 @@ def create_report(tenant_id: uuid.UUID, item_id: str, reason_code: ReasonCode) -
             created_at=datetime.now(UTC),
         )
         session.add(row)
+        _count(session, item_id, reason_code, row.created_at.date())
         session.flush()
         return ReportResult(row.report_id, row.created_at, created=True)
+
+
+def _bump(session: Session, item_id: str, reason_code: str, day: date) -> bool:
+    result = session.execute(
+        update(KnowledgeReportCount)
+        .where(
+            KnowledgeReportCount.item_id == item_id,
+            KnowledgeReportCount.reason_code == reason_code,
+            KnowledgeReportCount.day == day,
+        )
+        .values(count=KnowledgeReportCount.count + 1)
+    )
+    return bool(getattr(result, "rowcount", 0))
+
+
+def _count(session: Session, item_id: str, reason_code: str, day: date) -> None:
+    """Add one to the counter, creating it on first use. The UPDATE's row
+    lock serialises concurrent reports; when two transactions create the
+    same counter at once, the loser's insert fails in its savepoint and it
+    updates the winner's row instead."""
+    if _bump(session, item_id, reason_code, day):
+        return
+    try:
+        with session.begin_nested():
+            session.add(
+                KnowledgeReportCount(item_id=item_id, reason_code=reason_code, day=day, count=1)
+            )
+    except IntegrityError:
+        _bump(session, item_id, reason_code, day)
 
 
 def delete_for_tenant(tenant_id: uuid.UUID) -> None:

@@ -16,10 +16,17 @@ Two separate stores:
    approver, notes, the publishing editor) are deliberately **not** stored
    here: they stay in the content files and in the audit row the loader
    writes in the editorial tenant (T-3: no user columns in global tables).
-2. **Tenant side**: `knowledge_reports` ("report outdated"), with a non-null
-   `tenant_id`, forced RLS through `tenant_rls_statements`, and a purge
-   participant. It references knowledge only by id, without a foreign key,
-   so the loader can withdraw or remove an item without touching tenant rows.
+2. **Tenant side**: `knowledge_reports` ("report outdated") and
+   `knowledge_review_reports` (the daily editor review report, written only
+   in the editorial tenant), each with a non-null `tenant_id`, forced RLS
+   through `tenant_rls_statements`, and a purge participant. They reference
+   knowledge only by id, without a foreign key, so the loader can withdraw
+   or remove an item without touching tenant rows.
+3. **Anonymous aggregate**: `knowledge_report_counts`, one counter per item,
+   reason and day, with no tenant or user column. It is how the daily
+   review job learns about user reports without reading across tenants:
+   each new report bumps its counter. The application role may insert and
+   update it (and nothing else global).
 
 Search: `pg_trgm` and `unaccent` (PostgreSQL contrib, trusted extensions).
 `unaccent()` is only STABLE, so generated columns use IMMUTABLE wrappers
@@ -65,7 +72,8 @@ GLOBAL_TABLES: tuple[str, ...] = (
     "consulate_attributes",
     "consulate_jurisdictions",
 )
-TENANT_TABLES: tuple[str, ...] = ("knowledge_reports",)
+TENANT_TABLES: tuple[str, ...] = ("knowledge_reports", "knowledge_review_reports")
+AGGREGATE_TABLES: tuple[str, ...] = ("knowledge_report_counts",)
 
 # Hard caps enforced inside knowledge_search() (security review T-6).
 # The query is the user's text (capped at 256 characters by
@@ -90,7 +98,9 @@ CATALOGUE_FUNCTIONS: tuple[str, ...] = (
     "knowledge_items(text[])",
     "knowledge_facts(text)",
     "knowledge_consulates(text)",
+    "knowledge_review_snapshot(date)",
 )
+MAX_REVIEW_ROWS = 2000
 
 
 def arabic_translate_args() -> tuple[str, str]:
@@ -393,6 +403,60 @@ def _catalogue_functions() -> list[str]:
                 ORDER BY f.scope, f.fact_id
                 LIMIT {MAX_FACT_ROWS}
             ) x
+        $fn$
+        """,
+        # WP F: what the daily editor review report needs. Items, sources and
+        # consulate attributes due for review by `p_until` (expired or due
+        # soon), and every non-withdrawn fact (conflicts are found in
+        # Python). Ids, statuses and dates only; no text.
+        f"""
+        CREATE FUNCTION {s}.knowledge_review_snapshot(p_until date) {header}
+        AS $fn$
+            SELECT jsonb_build_object(
+                'items', coalesce((
+                    SELECT jsonb_agg(x.doc ORDER BY x.due, x.id) FROM (
+                        SELECT i.review_due_at AS due, i.item_id AS id, jsonb_build_object(
+                            'item_id', i.item_id, 'status', i.status,
+                            'review_due_at', i.review_due_at) AS doc
+                        FROM {s}.knowledge_items i
+                        WHERE i.status <> 'withdrawn' AND i.review_due_at <= p_until
+                        ORDER BY i.review_due_at, i.item_id LIMIT {MAX_REVIEW_ROWS}) x
+                ), '[]'::jsonb),
+                'sources', coalesce((
+                    SELECT jsonb_agg(x.doc ORDER BY x.due, x.id) FROM (
+                        SELECT src.review_due_at AS due, src.source_id AS id, jsonb_build_object(
+                            'source_id', src.source_id, 'status', src.status,
+                            'review_due_at', src.review_due_at,
+                            'valid_until', src.valid_until) AS doc
+                        FROM {s}.knowledge_sources src
+                        WHERE src.status <> 'withdrawn'
+                          AND (src.review_due_at <= p_until OR src.valid_until <= p_until)
+                        ORDER BY src.review_due_at, src.source_id LIMIT {MAX_REVIEW_ROWS}) x
+                ), '[]'::jsonb),
+                'attributes', coalesce((
+                    SELECT jsonb_agg(x.doc ORDER BY x.due, x.id) FROM (
+                        SELECT a.review_due_at AS due,
+                            a.code || '/' || a.attribute || '/' || a.lang AS id,
+                            jsonb_build_object(
+                                'code', a.code, 'attribute', a.attribute, 'lang', a.lang,
+                                'status', a.status, 'review_due_at', a.review_due_at) AS doc
+                        FROM {s}.consulate_attributes a
+                        WHERE a.status <> 'withdrawn' AND a.review_due_at <= p_until
+                        ORDER BY a.review_due_at, a.code, a.attribute, a.lang
+                        LIMIT {MAX_REVIEW_ROWS}) x
+                ), '[]'::jsonb),
+                'facts', coalesce((
+                    SELECT jsonb_agg(x.doc ORDER BY x.id) FROM (
+                        SELECT f.fact_id AS id, jsonb_build_object(
+                            'fact_id', f.fact_id, 'fact_key', f.fact_key, 'scope', f.scope,
+                            'value', f.value, 'unit', f.unit, 'valid_from', f.valid_from,
+                            'valid_until', f.valid_until, 'status', f.status,
+                            'review_due_at', f.review_due_at) AS doc
+                        FROM {s}.knowledge_facts f
+                        WHERE f.status <> 'withdrawn'
+                        ORDER BY f.fact_id LIMIT {MAX_REVIEW_ROWS}) x
+                ), '[]'::jsonb)
+            )
         $fn$
         """,
         f"""
@@ -833,6 +897,39 @@ def _create_tenant_tables() -> None:
         op.execute(statement)
 
 
+def _create_review_tables() -> None:
+    """WP F: the anonymous report counter and the editor review report."""
+    op.create_table(
+        "knowledge_report_counts",
+        sa.Column("item_id", sa.String(80), nullable=False),
+        sa.Column("reason_code", sa.String(16), nullable=False),
+        _date("day", nullable=False),
+        sa.Column("count", sa.Integer(), nullable=False),
+        sa.PrimaryKeyConstraint("item_id", "reason_code", "day", name="pk_kn_report_counts"),
+        sa.CheckConstraint(f"item_id ~ '{_ID_RE}'", name="ck_kn_report_counts_item"),
+        sa.CheckConstraint(
+            _in("reason_code", ("outdated", "incorrect", "broken_link", "other")),
+            name="ck_kn_report_counts_reason",
+        ),
+        sa.CheckConstraint("count >= 1", name="ck_kn_report_counts_count"),
+        schema=_SCHEMA,
+    )
+    op.create_table(
+        "knowledge_review_reports",
+        sa.Column("report_id", sa.Uuid(), primary_key=True),
+        sa.Column("tenant_id", sa.Uuid(), sa.ForeignKey("core.tenants.id"), nullable=False),
+        _date("report_date", nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column("summary", postgresql.JSONB(), nullable=False),
+        sa.UniqueConstraint("tenant_id", "report_date", name="uq_kn_review_reports_day"),
+        schema=_SCHEMA,
+    )
+    for statement in tenant_rls_statements("knowledge_review_reports", schema=_SCHEMA):
+        op.execute(statement)
+
+
 def upgrade() -> None:
     app_role = _app_role()
     # Trusted contrib extensions, pinned to schema `public` so the wrappers
@@ -848,6 +945,7 @@ def upgrade() -> None:
     _create_consulates()
     _create_search_indexes()
     _create_tenant_tables()
+    _create_review_tables()
     op.execute(_search_function())
     op.execute(_expand_terms_function())
     for statement in _catalogue_functions():
@@ -858,6 +956,12 @@ def upgrade() -> None:
         op.execute(f'GRANT SELECT ON {_SCHEMA}.{table} TO "{app_role}"')
     # Reports: created and purged, never edited.
     op.execute(f'GRANT SELECT, INSERT, DELETE ON {_SCHEMA}.knowledge_reports TO "{app_role}"')
+    # One review report per day, written once; deleted only by the purge.
+    op.execute(
+        f'GRANT SELECT, INSERT, DELETE ON {_SCHEMA}.knowledge_review_reports TO "{app_role}"'
+    )
+    # Anonymous counters: created and incremented, never deleted by the app.
+    op.execute(f'GRANT SELECT, INSERT, UPDATE ON {_SCHEMA}.knowledge_report_counts TO "{app_role}"')
     for function in (
         f"{_SCHEMA}.knowledge_search({_SEARCH_SIGNATURE})",
         f"{_SCHEMA}.knowledge_expand_terms({_EXPAND_SIGNATURE})",
@@ -874,7 +978,7 @@ def downgrade() -> None:
     op.execute(f"DROP FUNCTION IF EXISTS {s}.knowledge_expand_terms({_EXPAND_SIGNATURE})")
     for signature in CATALOGUE_FUNCTIONS:
         op.execute(f"DROP FUNCTION IF EXISTS {s}.{signature}")
-    for table in (*TENANT_TABLES, *reversed(GLOBAL_TABLES)):
+    for table in (*AGGREGATE_TABLES, *TENANT_TABLES, *reversed(GLOBAL_TABLES)):
         op.execute(f'REVOKE ALL ON {s}.{table} FROM "{app_role}"')
         op.drop_table(table, schema=s)
     for function in (

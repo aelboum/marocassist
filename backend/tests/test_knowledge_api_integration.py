@@ -410,5 +410,6 @@ def test_the_knowledge_functions_are_not_executable_by_public(admin: Engine) -> 
         "knowledge_items",
         "knowledge_facts",
         "knowledge_consulates",
+        "knowledge_review_snapshot",
     }
     assert not any(names.values())

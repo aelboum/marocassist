@@ -56,6 +56,10 @@ Create one separate tenant via the SaaS-OS operator for knowledge audit
 rows, and set its id as `MAROCASSIST_EDITORIAL_TENANT_ID` in the deployment
 environment. The loader refuses to publish without it.
 
+Set it for the worker as well: the daily editor review report (WP F) is
+written into this tenant, once per UTC day. Without it the review job runs
+every minute but does nothing.
+
 ## 5. Send the legal questions
 
 Send these to counsel (Moroccan counsel for Q-K1 and Q-K6; Dutch counsel is
