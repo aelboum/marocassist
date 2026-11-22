@@ -12,8 +12,10 @@ in Phase 4, if at all.
 - `POST /reports` needs `marocassist.knowledge:report` and a user session.
 
 Privacy (security review section 4): search queries are neither stored nor
-logged. This module never logs a query, and the response does not echo the
-query text back.
+logged. Search is a `POST` with the query in the JSON body, never in the
+URL: access logs, trace spans (`http.target`) and the edge log the URL with
+its query string. This module never logs a query, and the response does not
+echo it back. The other reads carry only ids and codes in their URLs.
 """
 
 from __future__ import annotations
@@ -50,6 +52,15 @@ RETRY_AFTER_SECONDS = 2
 ConsulateParam = Annotated[str | None, Query(pattern=CONSULATE)]
 
 
+class SearchIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    q: str = Field(max_length=MAX_QUERY_CHARS)
+    lang: Lang = "nl"
+    consulate: str | None = Field(default=None, pattern=CONSULATE)
+    kind: list[Kind] | None = Field(default=None, max_length=3)
+
+
 class ReportIn(BaseModel):
     # Free text is deliberately not accepted (it could hold personal data).
     model_config = ConfigDict(extra="forbid")
@@ -67,16 +78,12 @@ def _timeout() -> HTTPException:
     return service_unavailable(RETRY_AFTER_SECONDS)
 
 
-@router.get("/search", response_model=catalogue.SearchOut)
-def search(
-    q: Annotated[str, Query(max_length=MAX_QUERY_CHARS)],
-    lang: Lang = "nl",
-    consulate: ConsulateParam = None,
-    kind: Annotated[list[Kind] | None, Query()] = None,
-    _context: RequestContext = Depends(_read),
-) -> catalogue.SearchOut:
+@router.post("/search", response_model=catalogue.SearchOut)
+def search(body: SearchIn, _context: RequestContext = Depends(_read)) -> catalogue.SearchOut:
+    """A read despite the method: nothing is written. POST keeps the query
+    out of every URL and log line."""
     try:
-        return catalogue.search(q, lang=lang, consulate=consulate, kinds=kind)
+        return catalogue.search(body.q, lang=body.lang, consulate=body.consulate, kinds=body.kind)
     except SearchTimeout:
         raise _timeout() from None
 

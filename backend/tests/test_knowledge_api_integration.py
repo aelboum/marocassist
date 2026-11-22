@@ -143,8 +143,8 @@ def _base(tenant: str) -> str:
     return f"/v1/tenants/{tenant}/knowledge"
 
 
+SEARCH = {"q": "paspoort"}
 READ_PATHS = (
-    "/search?q=paspoort",
     f"/items/{PASSPORT}",
     f"/facts/{FEE}",
     "/consulates",
@@ -160,8 +160,8 @@ def test_search_returns_titles_snippets_and_source_cards(
     client: TestClient, owner: tuple[str, dict[str, str]]
 ) -> None:
     tenant, headers = owner
-    response = client.get(
-        f"{_base(tenant)}/search", params={"q": "paspoort verlengen"}, headers=headers
+    response = client.post(
+        f"{_base(tenant)}/search", json={"q": "paspoort verlengen"}, headers=headers
     )
     assert response.status_code == 200, response.text
     body = response.json()
@@ -181,16 +181,20 @@ def test_search_validates_its_parameters(
     client: TestClient, owner: tuple[str, dict[str, str]]
 ) -> None:
     tenant, headers = owner
-    for params in (
+    for body in (
         {},
         {"q": "x" * 1001},
         {"q": "paspoort", "lang": "de"},
         {"q": "paspoort", "consulate": "NL_Rotterdam"},
-        {"q": "paspoort", "kind": "secret"},
+        {"q": "paspoort", "kind": ["secret"]},
+        {"q": "paspoort", "note": "extra fields are refused"},
     ):
-        response = client.get(f"{_base(tenant)}/search", params=params, headers=headers)
-        assert response.status_code == 422, (params, response.status_code)
-    empty = client.get(f"{_base(tenant)}/search", params={"q": "   "}, headers=headers)
+        response = client.post(f"{_base(tenant)}/search", json=body, headers=headers)
+        assert response.status_code == 422, (body, response.status_code)
+    # The query never travels in the URL.
+    in_url = client.get(f"{_base(tenant)}/search", params={"q": "paspoort"}, headers=headers)
+    assert in_url.status_code == 405
+    empty = client.post(f"{_base(tenant)}/search", json={"q": "   "}, headers=headers)
     assert empty.status_code == 200
     assert empty.json()["results"] == []
 
@@ -343,6 +347,8 @@ def test_another_users_tenant_is_the_same_404_as_a_missing_one(
         missing = client.get(f"{_base(str(uuid.uuid4()))}{path}", headers=headers_a)
         assert foreign.status_code == missing.status_code == 404, path
         assert foreign.json() == missing.json()
+    foreign_search = client.post(f"{_base(tenant_b)}/search", json=SEARCH, headers=headers_a)
+    assert foreign_search.status_code == 404
     report = client.post(
         f"{_base(tenant_b)}/reports",
         json={"item_id": PASSPORT, "reason_code": "outdated"},
@@ -375,6 +381,8 @@ def test_without_the_knowledge_permissions_every_route_is_403(
     for path in READ_PATHS:
         response = client.get(f"{_base(tenant)}{path}", headers=headers)
         assert response.status_code == 403, (path, response.status_code)
+    search = client.post(f"{_base(tenant)}/search", json=SEARCH, headers=headers)
+    assert search.status_code == 403
     report = {"item_id": PASSPORT, "reason_code": "outdated"}
     url = f"{_base(tenant)}/reports"
     assert client.post(url, json=report, headers=headers).status_code == 201

@@ -211,12 +211,14 @@ chain is reused instead of building a parallel, tenant-less authorisation path.
 
 | Method and path (prefix `/v1/tenants/{tenant_id}/knowledge`) | Auth | Purpose |
 |---|---|---|
-| `GET /search?q=&lang=&consulate=&kind=` | `require_permission` `marocassist.knowledge:read` (owner role; grant migration for existing tenants) | Search results: item id, title, snippet (`ts_headline`, escaped), status, source cards. No tenant data is written. |
+| `POST /search` with JSON body `{q, lang, consulate, kind}` (implemented in WP D/E; the query is never in a URL, so access logs, trace spans and the edge log never contain it) | `require_permission` `marocassist.knowledge:read` (owner role; grant migration for existing tenants) | Search results: item id, title, snippet (`ts_headline`, escaped), status, source cards. No tenant data is written. |
 | `GET /items/{item_id}?lang=` | Same | Published item and citations |
 | `GET /facts/{fact_key}?consulate=` | Same | Fact value(s) with status and sources; conflict returns all values |
 | `GET /consulates` and `/consulates/{code}` | Same | Consulate attributes with per-attribute status |
 | `POST /reports` | User, `marocassist.knowledge:report` | "Report outdated"; stored tenant-scoped with RLS |
 | Editor API (later) | Editorial tenant permissions `marocassist.editorial:{draft,review,publish}` | Only if the file-based workflow (P3-D2) is replaced |
+
+Search is a `POST` although it writes nothing: a query string would put the user's question into every access log, trace span (`http.target`) and the edge log, against the owner decision that individual searches are not logged (security review section 4). Found during the WP E end-to-end run.
 
 Search stays authenticated. That avoids a public scraping surface, and the
 SaaS-OS per-tenant rate limit applies. A public, unauthenticated catalogue
