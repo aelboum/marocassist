@@ -63,6 +63,8 @@ ignore = [
 "tests/test_knowledge_api_integration.py" = ["S608"]
 "tests/test_knowledge_review_integration.py" = ["S608"]
 "tests/test_knowledge_eval_integration.py" = ["S608"]
+# Arabic test answers are written as \u escapes (ASCII-only sources), which makes long lines.
+"tests/test_knowledge_output_checks.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -146,6 +148,8 @@ source_modules = [
     "marocassist.knowledge.routes",
     "marocassist.knowledge.review",
     "marocassist.knowledge.evaluation",
+    "marocassist.knowledge.evidence",
+    "marocassist.knowledge.output_checks",
 ]
 forbidden_modules = ["marocassist.knowledge.loader"]
 

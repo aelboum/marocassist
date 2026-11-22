@@ -164,3 +164,42 @@ def _today() -> date:
     from marocassist.knowledge.evaluation import load_golden
 
     return load_golden(GOLDEN).today
+
+
+@pytest.mark.usefixtures("published")
+def test_the_evidence_pack_is_built_from_published_knowledge() -> None:
+    """WP H end to end: search, facts and source cards from the database
+    become one fenced pack, and a planted wrong fee is caught by the output
+    checks against that pack."""
+    import xml.etree.ElementTree as ET
+
+    from marocassist.knowledge import output_checks
+    from marocassist.knowledge.evidence import build_evidence
+
+    today = _today()
+    pack = build_evidence(
+        "paspoort verlengen",
+        lang="nl",
+        fact_keys=["fee.passport_renewal.adult", "fee.consular_card.adult"],
+        today=today,
+    )
+    assert pack.sources[0].item_id == "fixture.eval.passport-renewal"
+    assert [(f.label, f.value, f.status) for f in pack.facts] == [("F1", 300, "current")]
+    assert pack.clarify_consulate == ("nl-rotterdam",)
+    assert "https://www.consulat.ma/fr/passeport-biometrique" in pack.allowed_urls
+    root = ET.fromstring(pack.render())  # noqa: S314 - our own output
+    assert {child.tag for child in root} >= {"source", "fact", "card", "clarify"}
+
+    good = output_checks.check_answer(
+        "Maak een afspraak bij het consulaat [S1]. De leges zijn 300 MAD [F1].", pack
+    )
+    assert not good.blocked, good.findings
+    planted = output_checks.check_answer("De leges zijn 0 MAD [F1].", pack)
+    assert planted.blocked
+
+    stale = build_evidence("consulaire kaart", lang="nl", today=today)
+    card = [s for s in stale.sources if s.item_id == "fixture.eval.consular-card"]
+    assert card  # expired content stays findable, ranked lower, and flagged
+    assert {s.status for s in card} == {"expired"}
+    assert "expired" in stale.notices
+    assert all(s.item_id != "fixture.eval.old-consular-card" for s in stale.sources)

@@ -176,6 +176,31 @@ Rules:
 7. **No tools:** SaaS-OS refuses tools anyway. The model cannot fetch, browse
    or call anything.
 
+**Implemented in WP H:**
+
+- **`marocassist.knowledge.evidence` builds the pack.** `assemble` is pure; `build_evidence` searches, fetches and assembles.
+  - Sources are labelled `S1..S6` and hold at most about 6,000 characters in total. Each carries its status, its badge and `secondary_only`.
+  - Facts are labelled `F1..`, one per value. A conflict shows every value.
+  - Source cards are labelled `C1..` and are built from the source register. Their URLs are the only links an answer may use.
+  - A `clarify` element appears when a requested fee exists per consulate only.
+- **Every text and attribute is escaped again.** Markup becomes entities, and bidi, invisible and control characters become numeric references. Each red-team attack, placed in any field, stays inert inside one well-formed pack.
+- **`marocassist.knowledge.output_checks` checks a model answer against its pack.** It does two kinds of thing:
+  - **Repairs:** it removes unknown citations, and it appends a fixed notice for expired, conflict, secondary-only or under-review content when the answer leaves it out.
+  - **Blocks:** it rejects the answer for any of these:
+    - a procedural sentence without a citation;
+    - an amount that differs from the evidence;
+    - a link that is not a source card;
+    - a request for a credential or number;
+    - a money transfer;
+    - contact details or an intermediary;
+    - hidden characters;
+    - the wrong language;
+    - any answer to an empty pack other than the fixed reply.
+
+  A blocked answer is replaced by the fixed "cannot confirm" reply, with the official source cards.
+- **The fixed texts in four languages are in `answer_texts.json`.**
+- **The checks err on the side of blocking.** For example, "never share your DigiD code" is blocked too.
+
 ## 6. Consulate data model
 
 Each attribute group can be verified and updated on its own:

@@ -121,8 +121,17 @@ The review covers:
      - homoglyphs.
 
      The sanitiser now closes all of them.
-   - The evidence-pack and output-check halves of this control arrive with
-     WP H and reuse the same fixture.
+   - **WP H** covers the evidence-pack and output-check halves of this control, with the same fixture:
+     - `test_knowledge_evidence.py` places every attack in the body, title, heading, fact value and source-card fields. It checks that the rendered pack stays well formed, contains no hidden characters, and returns each text unchanged as data.
+     - `test_knowledge_output_checks.py` feeds planted unsafe answers to the output checks, as a fake provider would return them. These include:
+       - answers that obey an injection;
+       - wrong fees;
+       - foreign links;
+       - credential and payment requests;
+       - contacts;
+       - hidden characters.
+
+       The checks block every one of them.
 
 ## 4. Privacy (GDPR/AVG; Moroccan law 09-08)
 
